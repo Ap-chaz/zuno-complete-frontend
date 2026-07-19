@@ -1,0 +1,327 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* =========================================================
+   ZUNO Escrow — locked design system
+   Fonts loaded via <link> in src/routes/__root.tsx
+   ========================================================= */
+
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 12px);
+  --radius-3xl: calc(var(--radius) + 20px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--surface-2);
+  --color-popover-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-gold: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: oklch(0.98 0.005 250);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: oklch(0.98 0.005 250);
+  --color-success: var(--success);
+  --color-warning: var(--primary);
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-ring: var(--ring);
+
+  --shadow-gold: var(--shadow-gold);
+  --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasis: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  --radius: 0.875rem;
+
+  /* ZUNO brand — synced to exact app oklch tokens (source of truth: zuno-fronted-test) */
+  --background: oklch(0.985 0.005 250);
+  --foreground: oklch(0.2 0.04 265);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.965 0.01 260);
+
+  --primary: oklch(0.72 0.16 70);
+  --primary-foreground: oklch(0.2 0.04 265);
+  --secondary: oklch(0.94 0.015 260);
+  --muted: oklch(0.95 0.01 260);
+  --muted-foreground: oklch(0.45 0.025 265);
+  --accent: oklch(0.55 0.2 280);
+  --gold-text: oklch(0.55 0.16 68); /* deepened gold — use for small text on white, passes WCAG AA (4.5:1+). Raw --primary is only safe as a background, border, icon fill, or large (24px+) text. */
+  --destructive: oklch(0.6 0.22 25);
+  --success: oklch(0.6 0.17 155);
+  --border: oklch(0.88 0.01 260 / 90%);
+  --ring: oklch(0.7 0.16 68);
+
+  --gradient-gold: linear-gradient(135deg, oklch(0.82 0.16 78), oklch(0.7 0.18 60));
+  --gradient-violet: linear-gradient(135deg, oklch(0.55 0.22 285), oklch(0.4 0.18 270));
+  --gradient-hero:
+    radial-gradient(ellipse at top, oklch(0.85 0.08 80 / 50%), transparent 60%),
+    linear-gradient(180deg, oklch(0.99 0.005 250), oklch(0.95 0.015 260));
+  --gradient-card: linear-gradient(145deg, oklch(1 0 0), oklch(0.97 0.01 260));
+
+  --shadow-gold: 0 10px 40px -10px oklch(0.7 0.16 68 / 35%);
+  --shadow-card: 0 8px 30px -12px oklch(0.4 0.05 265 / 18%);
+  --shadow-elevated: 0 20px 60px -20px oklch(0.3 0.05 265 / 30%);
+}
+
+.dark {
+  --background: oklch(0.16 0.035 265);
+  --foreground: oklch(0.98 0.005 250);
+  --surface: oklch(0.21 0.04 265);
+  --surface-2: oklch(0.255 0.045 265);
+
+  --primary: oklch(0.82 0.16 78);
+  --primary-foreground: oklch(0.16 0.035 265);
+  --secondary: oklch(0.28 0.05 265);
+  --muted: oklch(0.26 0.04 265);
+  --muted-foreground: oklch(0.7 0.025 260);
+  --accent: oklch(0.55 0.2 280);
+  --destructive: oklch(0.62 0.22 25);
+  --success: oklch(0.7 0.17 155);
+  --border: oklch(0.32 0.04 265 / 60%);
+  --ring: oklch(0.82 0.16 78);
+
+  --gradient-gold: linear-gradient(135deg, oklch(0.85 0.16 80), oklch(0.75 0.18 65));
+  --gradient-violet: linear-gradient(135deg, oklch(0.55 0.22 285), oklch(0.4 0.18 270));
+  --gradient-hero:
+    radial-gradient(ellipse 55% 45% at 78% -5%, oklch(0.55 0.14 75 / 45%), transparent 60%),
+    linear-gradient(180deg, oklch(0.18 0.04 265), oklch(0.13 0.03 265));
+  --gradient-card: linear-gradient(145deg, oklch(0.23 0.045 265), oklch(0.19 0.04 265));
+
+  --shadow-gold: 0 10px 40px -10px oklch(0.82 0.16 78 / 35%);
+  --shadow-card: 0 8px 30px -12px oklch(0 0 0 / 55%);
+  --shadow-elevated: 0 20px 60px -20px oklch(0 0 0 / 75%);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--gradient-hero);
+    pointer-events: none;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    font-weight: 600;
+  }
+  p { line-height: 1.6; }
+  ::selection { background: color-mix(in oklab, var(--color-primary) 40%, transparent); color: var(--color-foreground); }
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@utility glass {
+  background: color-mix(in oklab, var(--color-surface) 70%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+}
+
+@utility eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+@utility gradient-hero {
+  background: var(--gradient-hero);
+}
+@utility gradient-gold {
+  background: var(--gradient-gold);
+}
+@utility gradient-violet {
+  background: var(--gradient-violet);
+}
+@utility gradient-card {
+  background: var(--gradient-card);
+}
+@utility shadow-gold {
+  box-shadow: var(--shadow-gold);
+}
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+@utility shadow-elevated {
+  box-shadow: var(--shadow-elevated);
+}
+
+@utility text-display-xl {
+  font-size: clamp(2.75rem, 2rem + 3vw, 5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+@utility text-display-lg {
+  font-size: clamp(2.25rem, 1.75rem + 2vw, 3.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+@utility text-heading-lg {
+  font-size: clamp(1.75rem, 1.5rem + 1vw, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+@utility text-heading-md {
+  font-size: clamp(1.375rem, 1.25rem + 0.5vw, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+@utility text-body-lg { font-size: 1.125rem; line-height: 1.6; }
+
+/* =========================================================
+   Chapter backgrounds — three full-bleed "rooms" the marketing
+   site scrolls through. Each chapter overrides the local
+   semantic tokens so cards, borders and muted text sitting
+   inside inherit the chapter's own tone.
+   ========================================================= */
+
+@utility chapter-ivory {
+  --chapter-ivory: oklch(0.985 0.005 250);
+  background: var(--chapter-ivory);
+  color: oklch(0.2 0.04 265);
+
+  --background: oklch(0.985 0.005 250);
+  --foreground: oklch(0.2 0.04 265);
+  --muted-foreground: oklch(0.42 0.03 265);
+  --surface: oklch(0.965 0.01 260);
+  --surface-2: oklch(0.94 0.012 260);
+  --border: oklch(0.82 0.012 260 / 70%);
+  --primary: oklch(0.72 0.16 70);
+  --primary-foreground: oklch(0.18 0.04 265);
+  --accent: oklch(0.55 0.2 280);
+  --gradient-card: linear-gradient(145deg, oklch(1 0 0), oklch(0.955 0.01 260));
+}
+
+@utility chapter-amber {
+  --chapter-amber: color-mix(in oklab, oklch(0.72 0.16 70) 30%, oklch(0.16 0.035 265) 70%);
+  background: var(--chapter-amber);
+  color: oklch(0.98 0.02 85);
+
+  --background: color-mix(in oklab, oklch(0.72 0.16 70) 30%, oklch(0.16 0.035 265) 70%);
+  --foreground: oklch(0.98 0.02 85);
+  --muted-foreground: color-mix(in oklab, oklch(0.98 0.02 85) 72%, transparent);
+  --surface: color-mix(in oklab, oklch(0.72 0.16 70) 22%, oklch(0.13 0.03 265) 78%);
+  --surface-2: color-mix(in oklab, oklch(0.72 0.16 70) 42%, oklch(0.13 0.03 265) 58%);
+  --border: color-mix(in oklab, oklch(0.82 0.16 78) 38%, transparent);
+  --primary: oklch(0.82 0.16 78);
+  --primary-foreground: oklch(0.16 0.035 265);
+  --accent: oklch(0.62 0.22 285);
+  --gradient-card: linear-gradient(
+    145deg,
+    color-mix(in oklab, oklch(0.72 0.16 70) 26%, oklch(0.13 0.03 265) 74%),
+    color-mix(in oklab, oklch(0.72 0.16 70) 42%, oklch(0.13 0.03 265) 58%)
+  );
+}
+
+@utility chapter-violet {
+  --chapter-violet: color-mix(in oklab, oklch(0.55 0.2 280) 28%, oklch(0.16 0.035 265) 72%);
+  background: var(--chapter-violet);
+  color: oklch(0.98 0.005 250);
+
+  --background: color-mix(in oklab, oklch(0.55 0.2 280) 28%, oklch(0.16 0.035 265) 72%);
+  --foreground: oklch(0.98 0.005 250);
+  --muted-foreground: color-mix(in oklab, oklch(0.98 0.005 250) 74%, transparent);
+  --surface: color-mix(in oklab, oklch(0.55 0.2 280) 20%, oklch(0.13 0.03 265) 80%);
+  --surface-2: color-mix(in oklab, oklch(0.55 0.2 280) 38%, oklch(0.13 0.03 265) 62%);
+  --border: color-mix(in oklab, oklch(0.55 0.2 280) 46%, transparent);
+  --primary: oklch(0.82 0.16 78);
+  --primary-foreground: oklch(0.16 0.035 265);
+  --accent: oklch(0.65 0.22 285);
+  --gradient-card: linear-gradient(
+    145deg,
+    color-mix(in oklab, oklch(0.55 0.2 280) 22%, oklch(0.13 0.03 265) 78%),
+    color-mix(in oklab, oklch(0.55 0.2 280) 40%, oklch(0.13 0.03 265) 60%)
+  );
+}
+
+/* --- keyframes for the vault / escrow flow motion --- */
+
+@keyframes zuno-particle {
+  0% { offset-distance: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+@keyframes zuno-dash {
+  to { stroke-dashoffset: -24; }
+}
+@keyframes zuno-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@keyframes zuno-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px color-mix(in oklab, var(--color-primary) 45%, transparent)); }
+  50% { filter: drop-shadow(0 0 16px color-mix(in oklab, var(--color-primary) 75%, transparent)); }
+}
+@keyframes zuno-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes zuno-status {
+  0%, 100% { background-color: color-mix(in oklab, var(--color-success) 14%, transparent); }
+  50% { background-color: color-mix(in oklab, var(--color-success) 28%, transparent); }
+}
+
+.zuno-reveal { opacity: 0; transform: translateY(16px); transition: opacity 420ms var(--ease-emphasis), transform 420ms var(--ease-emphasis); }
+.zuno-reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .zuno-reveal { opacity: 1; transform: none; }
+}
