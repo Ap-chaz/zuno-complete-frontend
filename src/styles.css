@@ -242,6 +242,21 @@
 @utility gradient-card {
   background: var(--gradient-card);
 }
+
+/* Aliases: the app screens (merged from zuno-fronted-test) use the
+   "bg-gradient-*" naming convention rather than "gradient-*". */
+@utility bg-gradient-gold {
+  background: var(--gradient-gold);
+}
+@utility bg-gradient-violet {
+  background: var(--gradient-violet);
+}
+@utility bg-gradient-hero {
+  background: var(--gradient-hero);
+}
+@utility bg-gradient-card {
+  background: var(--gradient-card);
+}
 @utility shadow-gold {
   box-shadow: var(--shadow-gold);
 }

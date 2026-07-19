@@ -212,7 +212,7 @@ function Step2({
           type="checkbox"
           checked={form.agreed}
           onChange={(e) => onAgree(e.target.checked)}
-          className="mt-0.5 h-4 w-4 accent-[hsl(var(--gold))]"
+          className="mt-0.5 h-4 w-4 accent-gold"
         />
         <span className="text-xs text-muted-foreground">
           I agree to the contract terms and authorise ZUNO to act as escrow agent.
