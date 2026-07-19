@@ -1,0 +1,158 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import {
+  ShieldCheck,
+  ChevronRight,
+  User,
+  Bell,
+  Lock,
+  Landmark,
+  HelpCircle,
+  FileText,
+  Info,
+  LogOut,
+  BadgeCheck,
+  Eye,
+  Receipt,
+  Pencil,
+} from "lucide-react";
+import { toast } from "sonner";
+import { TopBar } from "@/components/zuno/TopBar";
+import { currency } from "@/lib/zuno-data";
+import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
+
+export const Route = createFileRoute("/seller/account")({
+  head: () => ({ meta: [{ title: "Seller Profile — ZUNO" }] }),
+  component: SellerAccount,
+});
+
+function SellerAccount() {
+  const { logout } = useAuth();
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    toast.success("Logged out.");
+    navigate({ to: "/" });
+  };
+
+  return (
+    <div className="flex flex-1 flex-col overflow-y-auto pb-6">
+      <TopBar title="Seller Profile" back="/seller" />
+
+      {/* Profile card */}
+      <div className="mx-5 mt-4 rounded-3xl border border-border/40 bg-gradient-card p-5 shadow-card">
+        <div className="flex items-center gap-4">
+          <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-gold text-2xl font-bold text-gold-foreground">
+            Z
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-lg font-semibold">Zuri Boutique KE</p>
+              <BadgeCheck className="h-4 w-4 text-gold" />
+            </div>
+            <p className="truncate text-xs text-muted-foreground">hello@zuriboutique.co.ke</p>
+            <p className="truncate text-xs text-muted-foreground">+254 720 118 442</p>
+          </div>
+          <Link
+            to="/seller/settings"
+
+            className="grid h-9 w-9 place-items-center rounded-xl bg-surface-2 text-gold"
+            aria-label="Edit profile"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border/40 pt-4 text-center">
+          <div>
+            <p className="text-base font-bold">4.9</p>
+            <p className="text-[10px] text-muted-foreground">Rating</p>
+          </div>
+          <div>
+            <p className="text-base font-bold">328</p>
+            <p className="text-[10px] text-muted-foreground">Deals</p>
+          </div>
+          <div>
+            <p className="text-base font-bold">{currency(1284500)}</p>
+            <p className="text-[10px] text-muted-foreground">Earned</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Verification banner */}
+      <Link
+        to="/seller/verification"
+        className="mx-5 mt-4 flex items-center gap-3 rounded-2xl border border-gold/30 bg-gold/5 p-4"
+      >
+        <ShieldCheck className="h-6 w-6 text-gold" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold">Verification Status</p>
+          <p className="text-xs text-muted-foreground">KRA verified · Business docs pending</p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </Link>
+
+      {/* Business */}
+      <Section title="Business">
+        <Row icon={User} label="Edit profile" to="/seller/settings" />
+        <Row icon={Landmark} label="Linked bank & mobile money" to="/seller/settings" />
+        <Row icon={Receipt} label="Transaction history" to="/seller/transactions" />
+      </Section>
+
+      {/* Preferences */}
+      <Section title="Preferences">
+        <Row icon={Bell} label="Notifications" to="/seller/notifications" />
+        <Row icon={Lock} label="Security" to="/seller/settings" />
+        <Row icon={Eye} label="Privacy" to="/seller/settings" />
+      </Section>
+
+      {/* ZUNO */}
+      <Section title="ZUNO">
+        <Row icon={ShieldCheck} label="SafePay protection" to="/seller/safepay" />
+
+        <Row icon={HelpCircle} label="Help & support" to="/help" />
+        <Row icon={FileText} label="Terms & conditions" to="/terms" />
+        <Row icon={Info} label="About ZUNO" to="/about" />
+      </Section>
+
+      <div className="px-5 pb-8 pt-4">
+        <button
+          onClick={handleLogout}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/10 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/15"
+        >
+          <LogOut className="h-4 w-4" /> {t("account_log_out")}
+        </button>
+        <p className="mt-4 text-center text-[11px] text-muted-foreground">ZUNO v1.0.0 · Seller</p>
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mt-6 px-5">
+      <p className="mb-2 px-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+        {title}
+      </p>
+      <ul className="divide-y divide-border/40 overflow-hidden rounded-2xl border border-border/40 bg-surface">
+        {children}
+      </ul>
+    </div>
+  );
+}
+
+function Row({ icon: Icon, label, to }: { icon: typeof User; label: string; to: string }) {
+  return (
+    <li>
+      <Link to={to} className="flex items-center gap-3 px-4 py-3.5">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-gold">
+          <Icon className="h-4 w-4" />
+        </span>
+        <span className="flex-1 text-sm font-medium">{label}</span>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </Link>
+    </li>
+  );
+}
