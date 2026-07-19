@@ -18,6 +18,7 @@ import { WhatsAppFloat } from "@/components/site/WhatsAppFloat";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/hooks/useLanguage";
+import zunoLogo from "@/assets/zuno-logo-new.png";
 
 // Route prefixes that render their own chrome (PhoneFrame/BottomNav, admin
 // shell, auth screens) and should NOT get the marketing SiteNav/SiteFooter.
@@ -153,6 +154,44 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <div
+          id="zuno-splash"
+          style={{
+            display: "none",
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            alignItems: "center",
+            justifyContent: "center",
+            background: "var(--background)",
+            transition: "opacity 400ms ease",
+          }}
+        >
+          <img
+            src={zunoLogo}
+            alt="ZUNO"
+            width={72}
+            height={72}
+            style={{ animation: "zuno-pulse 1.6s ease-in-out infinite" }}
+          />
+        </div>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){
+              var el = document.getElementById('zuno-splash');
+              if (!el) return;
+              var isAppRoute = /^\\/(app|auth|seller|admin|share|help)(\\/|$)/.test(location.pathname);
+              if (!isAppRoute) return;
+              el.style.display = 'flex';
+              window.addEventListener('load', function () {
+                setTimeout(function () {
+                  el.style.opacity = '0';
+                  setTimeout(function () { el.style.display = 'none'; }, 400);
+                }, 250);
+              });
+            })();`,
+          }}
+        />
         {children}
         <Scripts />
       </body>
