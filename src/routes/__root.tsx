@@ -22,7 +22,11 @@ import { LanguageProvider } from "@/hooks/useLanguage";
 // Route prefixes that render their own chrome (PhoneFrame/BottomNav, admin
 // shell, auth screens) and should NOT get the marketing SiteNav/SiteFooter.
 const APP_PREFIXES = ["/app", "/auth", "/seller", "/admin"];
+// Standalone app-native screens (own TopBar/PhoneFrame) that live outside
+// those prefixes but still shouldn't get the marketing chrome.
+const APP_ROUTES = ["/share", "/help"];
 function isAppRoute(pathname: string) {
+  if (APP_ROUTES.includes(pathname)) return true;
   return APP_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 

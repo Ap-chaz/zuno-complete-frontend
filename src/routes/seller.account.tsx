@@ -8,7 +8,6 @@ import {
   Landmark,
   HelpCircle,
   FileText,
-  Info,
   LogOut,
   BadgeCheck,
   Eye,
@@ -113,8 +112,7 @@ function SellerAccount() {
         <Row icon={ShieldCheck} label="SafePay protection" to="/seller/safepay" />
 
         <Row icon={HelpCircle} label="Help & support" to="/help" />
-        <Row icon={FileText} label="Terms & conditions" to="/terms" />
-        <Row icon={Info} label="About ZUNO" to="/about" />
+        <Row icon={FileText} label="Terms & conditions" to="/terms" external />
       </Section>
 
       <div className="px-5 pb-8 pt-4">
@@ -143,16 +141,27 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Row({ icon: Icon, label, to }: { icon: typeof User; label: string; to: string }) {
+function Row({ icon: Icon, label, to, external }: { icon: typeof User; label: string; to: string; external?: boolean }) {
+  const content = (
+    <>
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-gold">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="flex-1 text-sm font-medium">{label}</span>
+      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </>
+  );
   return (
     <li>
-      <Link to={to} className="flex items-center gap-3 px-4 py-3.5">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-gold">
-          <Icon className="h-4 w-4" />
-        </span>
-        <span className="flex-1 text-sm font-medium">{label}</span>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Link>
+      {external ? (
+        <a href={to} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3.5">
+          {content}
+        </a>
+      ) : (
+        <Link to={to} className="flex items-center gap-3 px-4 py-3.5">
+          {content}
+        </Link>
+      )}
     </li>
   );
 }
