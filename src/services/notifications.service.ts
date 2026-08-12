@@ -1,7 +1,7 @@
 import { apiClient } from "@/lib/api/client";
 import { mockResolve } from "@/lib/api/mock-adapter";
 import { env } from "@/config/env";
-import type { Notification } from "@/types/models";
+import type { Notification, PaginatedResult } from "@/types/models";
 
 const MOCK_NOTIFICATIONS: Notification[] = [
   { id: "n1", title: "Payment received", body: "KES 191,311 from Gadget World", read: false, createdAt: new Date().toISOString(), type: "transaction", relatedId: "ZUNOAXFVLO4Y8Y" },
@@ -15,7 +15,8 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 export const notificationsService = {
   async list(): Promise<Notification[]> {
     if (env.useMockApi) return mockResolve([...MOCK_NOTIFICATIONS]);
-    return apiClient.get<Notification[]>("/notifications");
+    const res = await apiClient.get<PaginatedResult<Notification>>("/notifications?pageSize=100");
+    return res.data;
   },
 
   async unreadCount(): Promise<number> {

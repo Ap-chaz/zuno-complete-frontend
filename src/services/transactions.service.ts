@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/api/client";
 import { mockResolve, mockReject } from "@/lib/api/mock-adapter";
 import { env } from "@/config/env";
 import { transactions as seedTransactions, sellers as seedSellers } from "@/lib/zuno-data";
-import type { Transaction, TxStatus } from "@/types/models";
+import type { PaginatedResult, Transaction, TxStatus } from "@/types/models";
 
 // `zuno-data.ts` remains the single source of seed data (still consumed
 // directly by routes not yet migrated to the service layer). We adapt it
@@ -39,7 +39,8 @@ export function statusColorClass(s: TxStatus): string {
 export const transactionsService = {
   async list(): Promise<Transaction[]> {
     if (env.useMockApi) return mockResolve([...MOCK_TRANSACTIONS]);
-    return apiClient.get<Transaction[]>("/transactions");
+    const res = await apiClient.get<PaginatedResult<Transaction>>("/transactions?pageSize=100");
+    return res.data;
   },
 
   async getById(id: string): Promise<Transaction> {

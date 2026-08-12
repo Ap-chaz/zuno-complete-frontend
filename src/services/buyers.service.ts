@@ -2,7 +2,7 @@ import { mockResolve } from "@/lib/api/mock-adapter";
 import { env } from "@/config/env";
 import { apiClient } from "@/lib/api/client";
 import { transactionsService } from "@/services/transactions.service";
-import type { BuyerSummary, KycStatus } from "@/types/models";
+import type { BuyerSummary, KycStatus, PaginatedResult } from "@/types/models";
 
 // In-memory only — resets on reload, same tradeoff as the seller tier
 // overrides in admin.sellers.tsx. Once a real user table exists, suspension
@@ -54,7 +54,7 @@ export const buyersService = {
 
       return mockResolve([...byBuyer.values()].sort((a, b) => b.totalSpent - a.totalSpent));
     }
-    return apiClient.get<BuyerSummary[]>("/buyers");
+    return apiClient.get<PaginatedResult<BuyerSummary>>("/buyers?pageSize=100").then((r) => r.data);
   },
 
   async toggleSuspend(name: string, suspended: boolean): Promise<void> {

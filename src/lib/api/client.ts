@@ -47,8 +47,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       let code: string | undefined;
       try {
         const body = await res.json();
-        message = body?.message ?? message;
-        code = body?.code;
+        // Backend error shape is `{ error: { message, code, status } }`;
+        // fall back to a flat `{ message, code }` in case that ever changes.
+        message = body?.error?.message ?? body?.message ?? message;
+        code = body?.error?.code ?? body?.code;
       } catch {
         // Non-JSON error body — fall back to statusText.
       }

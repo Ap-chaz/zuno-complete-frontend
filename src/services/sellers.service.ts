@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/api/client";
 import { mockResolve, mockReject } from "@/lib/api/mock-adapter";
 import { env } from "@/config/env";
 import { sellers as seedSellers, categories as seedCategories } from "@/lib/zuno-data";
-import type { Seller } from "@/types/models";
+import type { PaginatedResult, Seller } from "@/types/models";
 
 // Adapts the shared seed data (see transactions.service.ts for the rationale).
 const MOCK_SELLERS: Seller[] = seedSellers;
@@ -12,7 +12,8 @@ export const SELLER_CATEGORIES = seedCategories;
 export const sellersService = {
   async list(): Promise<Seller[]> {
     if (env.useMockApi) return mockResolve([...MOCK_SELLERS]);
-    return apiClient.get<Seller[]>("/sellers");
+    const res = await apiClient.get<PaginatedResult<Seller>>("/sellers?pageSize=100");
+    return res.data;
   },
 
   async getById(id: string): Promise<Seller> {
