@@ -86,16 +86,14 @@ function Hero() {
   const [videoFailed, setVideoFailed] = useState(false);
 
   return (
-    <section className="relative overflow-hidden text-center">
-      {/* Spacer: reserves scroll height in normal flow, since the pinned
-          layer below is `fixed` and removed from flow. */}
-      <div aria-hidden className="h-[100svh]" />
-
-      {/* Pinned layer: stays locked to the viewport while every chapter
-          after Hero (wrapped as relative z-10 in Home()) scrolls up and
-          covers it — video + headline never move, exactly like the
-          reference site's hero. */}
-      <div className="fixed inset-0 z-0 flex h-[100svh] flex-col justify-center overflow-hidden bg-background py-24">
+    <section className="relative h-[150svh] overflow-hidden text-center">
+      {/* Sticky pin: sticks to the top of the viewport while its 150svh-tall
+          parent scrolls by, giving ~50svh of extra scroll for the next
+          chapter to slide up and fully cover it — then it releases and
+          scrolls away normally like everything else. Same "stays put while
+          covered" visual as a true `fixed` hero, but it's real document
+          flow, so it renders correctly in full-page screenshots too. */}
+      <div className="sticky top-0 z-0 flex h-[100svh] flex-col justify-center overflow-hidden bg-background py-24">
         {!videoFailed && (
           <video
             aria-hidden
