@@ -86,14 +86,16 @@ function Hero() {
   const [videoFailed, setVideoFailed] = useState(false);
 
   return (
-    <section className="relative h-[150svh] overflow-hidden text-center">
-      {/* Sticky pin: sticks to the top of the viewport while its 150svh-tall
-          parent scrolls by, giving ~50svh of extra scroll for the next
-          chapter to slide up and fully cover it — then it releases and
-          scrolls away normally like everything else. Same "stays put while
-          covered" visual as a true `fixed` hero, but it's real document
-          flow, so it renders correctly in full-page screenshots too. */}
-      <div className="sticky top-0 z-0 flex h-[100svh] flex-col justify-center overflow-hidden bg-background py-24">
+    <section className="relative overflow-hidden text-center">
+      {/* Spacer: reserves scroll height in normal flow, since the pinned
+          layer below is `fixed` and removed from flow. */}
+      <div aria-hidden className="h-[100svh]" />
+
+      {/* Pinned layer: stays locked to the viewport while every chapter
+          after Hero (wrapped as relative z-10 in Home()) scrolls up and
+          covers it — video + headline never move, exactly like the
+          reference site's hero. */}
+      <div className="fixed inset-0 z-0 flex h-[100svh] flex-col justify-center overflow-hidden bg-background py-24">
         {!videoFailed && (
           <video
             aria-hidden
@@ -103,11 +105,10 @@ function Hero() {
             playsInline
             preload="auto"
             onError={() => setVideoFailed(true)}
-            className="pointer-events-none absolute inset-0 h-full w-full object-contain"
-            style={{ objectPosition: "50% 50%" }}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            style={{ objectPosition: "50% 45%" }}
           >
-            <source src="/videos/hero-v5.webm" type="video/webm" />
-            <source src="/videos/hero-v5.mp4" type="video/mp4" />
+            <source src="/videos/hero-v2.mp4" type="video/mp4" />
           </video>
         )}
 
@@ -161,7 +162,7 @@ function Hero() {
         <div className="relative mx-auto max-w-[880px] px-6 lg:px-8">
           <Reveal>
             <h1 className="text-display-xl mx-auto mt-5 max-w-[16ch] text-white">
-              Hold the <span className="text-primary">money.</span><br className="hidden sm:block" /> Not the risk.
+              Hold the money.<br className="hidden sm:block" /> Not the risk.
             </h1>
             <p className="mx-auto mt-6 max-w-[52ch] text-body-lg text-white/80">
               A neutral escrow account for marketplace, social, and DM deals. Money sits in a

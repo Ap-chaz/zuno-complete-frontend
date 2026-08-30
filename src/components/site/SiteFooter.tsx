@@ -80,7 +80,7 @@ const contactLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative z-10 mt-0 border-t border-border/60 bg-background">
+    <footer className="mt-0 border-t border-border/60">
       <div className="mx-auto max-w-[1200px] px-6 py-16 lg:px-8">
         <div className="grid gap-12 md:grid-cols-[1.3fr_1fr_1fr_1fr_1fr]">
           <div>
