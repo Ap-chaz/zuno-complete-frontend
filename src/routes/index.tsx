@@ -105,7 +105,7 @@ function Hero() {
             playsInline
             preload="auto"
             onError={() => setVideoFailed(true)}
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            className="pointer-events-none absolute inset-0 h-full w-full object-contain"
             style={{ objectPosition: "50% 50%" }}
           >
             <source src="/videos/hero-v4.webm" type="video/webm" />
