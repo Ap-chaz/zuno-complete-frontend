@@ -108,8 +108,8 @@ function Hero() {
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
             style={{ objectPosition: "50% 50%" }}
           >
-            <source src="/videos/hero-v3.webm" type="video/webm" />
-            <source src="/videos/hero-v3.mp4" type="video/mp4" />
+            <source src="/videos/hero-v4.webm" type="video/webm" />
+            <source src="/videos/hero-v4.mp4" type="video/mp4" />
           </video>
         )}
 
