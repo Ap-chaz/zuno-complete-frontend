@@ -163,7 +163,7 @@ function Hero() {
         <div className="relative mx-auto max-w-[880px] px-6 lg:px-8">
           <Reveal>
             <h1 className="text-display-xl mx-auto mt-5 max-w-[16ch] text-white">
-              Hold the money.<br className="hidden sm:block" /> Not the risk.
+              Hold the <span className="text-primary">money.</span><br className="hidden sm:block" /> Not the risk.
             </h1>
             <p className="mx-auto mt-6 max-w-[52ch] text-body-lg text-white/80">
               A neutral escrow account for marketplace, social, and DM deals. Money sits in a
