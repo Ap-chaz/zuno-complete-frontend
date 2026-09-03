@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { currency } from "@/lib/zuno-data";
 import { KycGate } from "@/components/zuno/KycGate";
+import { ThemeToggle } from "@/components/zuno/ThemeToggle";
 import { assertKycVerified } from "@/lib/zuno-kyc";
 import { transactionsService } from "@/services/transactions.service";
 import { transactionKeys } from "@/hooks/queries/useTransactions";
@@ -106,6 +107,7 @@ function NewEscrow() {
             {step === 6 && "Escrow Confirmed"}
           </h1>
         </div>
+        <ThemeToggle />
       </header>
 
       {/* Progress */}

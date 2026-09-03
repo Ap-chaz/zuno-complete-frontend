@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bell, Shield, QrCode, ArrowUpRight, ShieldCheck, Package, FilePlus, Inbox } from "lucide-react";
 import { Logo } from "@/components/zuno/Logo";
+import { ThemeToggle } from "@/components/zuno/ThemeToggle";
 import { EmptyState, ListSkeleton } from "@/components/common/StateViews";
 import { useActiveTransactions, useTransactions } from "@/hooks/queries/useTransactions";
 import { useUnreadNotificationCount } from "@/hooks/queries/useNotifications";
@@ -39,6 +40,7 @@ function Home() {
       <header className="flex items-center justify-between px-5 pt-6">
         <Logo />
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link
             to="/app/notifications"
             className="relative grid h-10 w-10 place-items-center rounded-xl bg-surface"

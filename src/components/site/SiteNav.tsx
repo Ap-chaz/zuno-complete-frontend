@@ -1,7 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { ThemeToggle } from "@/components/zuno/ThemeToggle";
 import { Logo } from "@/components/zuno/Logo";
 
 const links = [
@@ -114,7 +113,6 @@ export function SiteNav() {
         </div>
 
         <div className="hidden items-center gap-2 lg:flex">
-          <ThemeToggle />
           <Link
             to="/auth/signup"
             className="inline-flex h-10 items-center rounded-full bg-primary pl-4 pr-3 text-sm font-semibold text-primary-foreground transition-transform hover:opacity-95 active:scale-[0.98]"
@@ -124,7 +122,6 @@ export function SiteNav() {
         </div>
 
         <div className="flex items-center gap-1 pr-1 lg:hidden">
-          <ThemeToggle />
           <button
             ref={menuButtonRef}
             type="button"

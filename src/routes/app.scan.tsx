@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Camera, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/zuno/ThemeToggle";
 
 export const Route = createFileRoute("/app/scan")({
   head: () => ({ meta: [{ title: "Scan QR — ZUNO" }] }),
@@ -105,7 +106,8 @@ function ScanQR() {
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h1 className="text-lg font-bold">Scan QR</h1>
+        <h1 className="flex-1 text-lg font-bold">Scan QR</h1>
+        <ThemeToggle />
       </header>
 
       <div className="mx-5 mt-2 flex-1 overflow-hidden rounded-3xl border border-border/40 bg-black">

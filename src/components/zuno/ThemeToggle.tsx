@@ -3,18 +3,35 @@ import { Moon, Sun } from "lucide-react";
 
 type Theme = "light" | "dark";
 
+/**
+ * Route prefixes where dark mode is allowed at all. Everywhere else (the
+ * public marketing site, auth screens, /share, /help) is light-only —
+ * see isDashboardRoute() / ThemeRouteSync in __root.tsx.
+ */
+export const DASHBOARD_THEME_PREFIXES = ["/app", "/seller", "/admin"];
+
+export function isDashboardRoute(pathname: string): boolean {
+  return DASHBOARD_THEME_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 function getInitial(): Theme {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "light";
   const saved = window.localStorage.getItem("zuno-theme") as Theme | null;
   if (saved === "light" || saved === "dark") return saved;
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 function getInitialFromDom(): Theme {
-  if (typeof document === "undefined") return "dark";
+  if (typeof document === "undefined") return "light";
   return document.documentElement.classList.contains("dark") ? "dark" : "light";
 }
 
+/**
+ * Theme is only ever toggleable inside the dashboard (buyer app, seller,
+ * admin). This hook still just reflects/writes the shared `dark` class +
+ * `zuno-theme` localStorage key — route enforcement (forcing light outside
+ * the dashboard) lives in ThemeRouteSync in __root.tsx.
+ */
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(getInitialFromDom);
 

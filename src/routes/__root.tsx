@@ -18,6 +18,7 @@ import { WhatsAppFloat } from "@/components/site/WhatsAppFloat";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LanguageProvider } from "@/hooks/useLanguage";
+import { isDashboardRoute } from "@/components/zuno/ThemeToggle";
 import zunoLogo from "@/assets/zuno-logo-new.png";
 
 // Route prefixes that render their own chrome (PhoneFrame/BottomNav, admin
@@ -148,7 +149,13 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('zuno-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;if(d){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+            __html: `(function(){try{
+              var isDashboard=/^\\/(app|seller|admin)(\\/|$)/.test(location.pathname);
+              if(!isDashboard)return;
+              var t=localStorage.getItem('zuno-theme');
+              var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;
+              if(d){document.documentElement.classList.add('dark');}
+            }catch(e){}})();`,
           }}
         />
         <HeadContent />
@@ -199,6 +206,29 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Dark mode only exists inside the dashboard (/app, /seller, /admin). Every
+ * other route — marketing site, /auth, /share, /help — is light-only. This
+ * runs on every client-side navigation to enforce that: leaving the
+ * dashboard forces light, (re-)entering it restores the saved preference.
+ */
+function ThemeRouteSync({ pathname }: { pathname: string }) {
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!isDashboardRoute(pathname)) {
+      root.classList.remove("dark");
+      return;
+    }
+    const saved = window.localStorage.getItem("zuno-theme");
+    const wantsDark = saved
+      ? saved === "dark"
+      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.classList.toggle("dark", wantsDark);
+  }, [pathname]);
+
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -208,6 +238,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <LanguageProvider>
+          <ThemeRouteSync pathname={pathname} />
           {showMarketingChrome ? (
             <div className="flex min-h-screen flex-col">
               <SiteNav />

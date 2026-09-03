@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bell, TrendingUp, Package, Wallet, Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/zuno/Logo";
+import { ThemeToggle } from "@/components/zuno/ThemeToggle";
 import { currency } from "@/lib/zuno-data";
 
 export const Route = createFileRoute("/seller/")({
@@ -18,6 +19,7 @@ function SellerHome() {
           <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold text-gold">SELLER</span>
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link to="/seller/notifications" className="relative grid h-10 w-10 place-items-center rounded-xl bg-surface">
             <Bell className="h-5 w-5 text-gold" />
           </Link>

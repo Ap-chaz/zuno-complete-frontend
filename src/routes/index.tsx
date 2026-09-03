@@ -82,6 +82,12 @@ function ChapterMark({ n, of = 4, title }: { n: number; of?: number; title: stri
 
 /* ────────────────────────────────────────────────────────── */
 
+// The hero video is designed to sit on a dark backdrop (a soft dark
+// vignette lets it read clearly). It stays this fixed dark color even
+// though the rest of the marketing site is light-only, so the video
+// never gets washed out by the light theme background.
+const HERO_DARK_BG = "oklch(0.16 0.035 265)";
+
 function Hero() {
   const [videoFailed, setVideoFailed] = useState(false);
 
@@ -95,7 +101,10 @@ function Hero() {
           after Hero (wrapped as relative z-10 in Home()) scrolls up and
           covers it — video + headline never move, exactly like the
           reference site's hero. */}
-      <div className="fixed inset-0 z-0 flex h-[100svh] flex-col justify-center overflow-hidden bg-background py-24">
+      <div
+        className="fixed inset-0 z-0 flex h-[100svh] flex-col justify-center overflow-hidden py-24"
+        style={{ backgroundColor: HERO_DARK_BG }}
+      >
         {!videoFailed && (
           <video
             aria-hidden
@@ -118,7 +127,7 @@ function Hero() {
           style={{
             background: videoFailed
               ? undefined
-              : "linear-gradient(180deg, color-mix(in oklab, var(--color-background) 55%, transparent), var(--color-background) 92%)",
+              : `linear-gradient(180deg, color-mix(in oklab, ${HERO_DARK_BG} 55%, transparent), ${HERO_DARK_BG} 92%)`,
             backgroundImage: videoFailed
               ? "radial-gradient(55% 45% at 50% 30%, color-mix(in oklab, var(--color-primary) 16%, transparent), transparent 70%)"
               : undefined,
@@ -162,7 +171,7 @@ function Hero() {
         <div className="relative mx-auto max-w-[880px] px-6 lg:px-8">
           <Reveal>
             <h1 className="text-display-xl mx-auto mt-5 max-w-[16ch] text-white">
-              Hold the money.<br className="hidden sm:block" /> Not the risk.
+              Hold the <span className="text-primary">money</span>.<br className="hidden sm:block" /> Not the risk.
             </h1>
             <p className="mx-auto mt-6 max-w-[52ch] text-body-lg text-white/80">
               A neutral escrow account for marketplace, social, and DM deals. Money sits in a
@@ -191,23 +200,54 @@ function Hero() {
 
 /* ────────────────────────────────────────────────────────── */
 /* A genuinely-moving strip of real facts about ZUNO's rails —
-   not borrowed press logos, since ZUNO doesn't have any yet.    */
+   not borrowed press logos, since ZUNO doesn't have any yet.
+   Each item is a generated badge image; falls back to plain
+   text + dot for any item that doesn't have an image yet.       */
 
 function RailsMarquee() {
-  const items = [
-    "Bank transfer", "Card payment", "Mobile money", "Segregated trust account",
-    "Encrypted at rest", "Human dispute review", "Timestamped audit trail",
+  const items: { label: string; img?: string }[] = [
+    { label: "M-Pesa STK Push", img: "/marquee/mpesa-stk-push.png" },
+    { label: "Segregated trust account", img: "/marquee/segregated-trust-account.png" },
+    { label: "Encrypted at rest", img: "/marquee/encrypted-at-rest.png" },
+    { label: "Human dispute review", img: "/marquee/human-dispute-review.png" },
+    { label: "Timestamped audit trail", img: "/marquee/timestamped-audit-trail.png" },
+    { label: "Seller verification tiers", img: "/marquee/seller-verification-tiers.png" },
+    { label: "WhatsApp-linked deals", img: "/marquee/whatsapp-linked-deals.png" },
   ];
-  const loop = [...items, ...items];
+  // Split into two rows — top row scrolls left, bottom row scrolls right,
+  // matching the reference site's dual-direction press-logo strip.
+  const rowTop = items.filter((_, i) => i % 2 === 0);
+  const rowBottom = items.filter((_, i) => i % 2 === 1);
+  const loopTop = [...rowTop, ...rowTop];
+  const loopBottom = [...rowBottom, ...rowBottom];
+
+  const renderItem = (t: { label: string; img?: string }, i: number) =>
+    t.img ? (
+      <img
+        key={i}
+        src={t.img}
+        alt={t.label}
+        className="h-40 w-auto shrink-0 select-none sm:h-52"
+        draggable={false}
+      />
+    ) : (
+      <span key={i} className="flex items-center gap-2 whitespace-nowrap text-sm font-medium text-muted-foreground">
+        <span className="h-1.5 w-1.5 rounded-full bg-primary" /> {t.label}
+      </span>
+    );
+
   return (
-    <div className="overflow-hidden border-y border-border/50 bg-surface py-5">
-      <div className="marquee-mask">
-        <div className="marquee-track flex w-max items-center gap-10">
-          {loop.map((t, i) => (
-            <span key={i} className="flex items-center gap-2 whitespace-nowrap text-sm font-medium text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> {t}
-            </span>
-          ))}
+    <div className="overflow-hidden border-y border-border/50 bg-surface py-6">
+      <div className="space-y-2">
+        <div className="marquee-mask">
+          <div className="marquee-track flex w-max items-center gap-8">
+            {loopTop.map(renderItem)}
+          </div>
+        </div>
+        <div className="marquee-mask">
+          <div className="marquee-track-reverse flex w-max items-center gap-8">
+            {loopBottom.map(renderItem)}
+          </div>
         </div>
       </div>
     </div>
