@@ -214,12 +214,7 @@ function RailsMarquee() {
     { label: "Seller verification tiers", img: "/marquee/seller-verification-tiers.png" },
     { label: "WhatsApp-linked deals", img: "/marquee/whatsapp-linked-deals.png" },
   ];
-  // Split into two rows — top row scrolls left, bottom row scrolls right,
-  // matching the reference site's dual-direction press-logo strip.
-  const rowTop = items.filter((_, i) => i % 2 === 0);
-  const rowBottom = items.filter((_, i) => i % 2 === 1);
-  const loopTop = [...rowTop, ...rowTop];
-  const loopBottom = [...rowBottom, ...rowBottom];
+  const loop = [...items, ...items];
 
   const renderItem = (t: { label: string; img?: string }, i: number) =>
     t.img ? (
@@ -227,7 +222,7 @@ function RailsMarquee() {
         key={i}
         src={t.img}
         alt={t.label}
-        className="h-40 w-auto shrink-0 select-none sm:h-52"
+        className="h-32 w-auto shrink-0 select-none sm:h-40"
         draggable={false}
       />
     ) : (
@@ -237,17 +232,10 @@ function RailsMarquee() {
     );
 
   return (
-    <div className="overflow-hidden border-y border-border/50 bg-surface py-6">
-      <div className="space-y-2">
-        <div className="marquee-mask">
-          <div className="marquee-track flex w-max items-center gap-8">
-            {loopTop.map(renderItem)}
-          </div>
-        </div>
-        <div className="marquee-mask">
-          <div className="marquee-track-reverse flex w-max items-center gap-8">
-            {loopBottom.map(renderItem)}
-          </div>
+    <div className="overflow-hidden border-y border-border/50 bg-surface py-8">
+      <div className="marquee-mask">
+        <div className="marquee-track flex w-max items-center gap-10">
+          {loop.map(renderItem)}
         </div>
       </div>
     </div>
