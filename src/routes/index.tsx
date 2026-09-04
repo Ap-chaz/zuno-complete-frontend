@@ -706,7 +706,7 @@ function ChapterBegin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                className="h-16 flex-1 rounded-full border-[3px] border-white bg-white/25 px-6 text-lg font-medium text-white placeholder:text-white/80 outline-none focus:bg-white/35 sm:h-12 sm:border-2 sm:border-white/50 sm:bg-white/15 sm:text-[15px] sm:font-normal"
+                className="h-16 w-full rounded-full border-[3px] border-white bg-white/25 px-6 text-lg font-medium text-white placeholder:text-white/80 outline-none focus:bg-white/35 sm:h-12 sm:flex-1 sm:border-2 sm:border-white/50 sm:bg-white/15 sm:text-[15px] sm:font-normal"
               />
               <button
                 type="submit"
