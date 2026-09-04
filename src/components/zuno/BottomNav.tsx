@@ -4,19 +4,23 @@ import type { ComponentType } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { TranslationKey } from "@/lib/i18n/translations";
 
-type Item = { to: string; labelKey: TranslationKey; icon: ComponentType<{ className?: string }>; matchPrefix?: string };
+export type NavItem = { to: string; labelKey: TranslationKey; icon: ComponentType<{ className?: string }>; matchPrefix?: string };
 
-const buyerItems: Item[] = [
+export const buyerNavItems: NavItem[] = [
   { to: "/app", labelKey: "nav_home", icon: Home },
   { to: "/app/sellers", labelKey: "nav_sellers", icon: Store },
   { to: "/app/track", labelKey: "nav_tracking", icon: Truck, matchPrefix: "/app/track" },
 ];
 
-const sellerItems: Item[] = [
+export const sellerNavItems: NavItem[] = [
   { to: "/seller", labelKey: "nav_overview", icon: LayoutDashboard },
   { to: "/seller/deliveries", labelKey: "nav_orders", icon: Truck },
   { to: "/seller/transactions", labelKey: "nav_payouts", icon: Wallet },
 ];
+
+// Back-compat aliases used within this file.
+const buyerItems = buyerNavItems;
+const sellerItems = sellerNavItems;
 
 export function BottomNav({ variant = "buyer" }: { variant?: "buyer" | "seller" }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
