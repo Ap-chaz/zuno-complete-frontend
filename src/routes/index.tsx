@@ -42,11 +42,11 @@ function Home() {
     <>
       <Hero />
       <div className="relative z-10 bg-background">
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-border/60 bg-surface px-6 py-4 text-[13px] text-muted-foreground">
+        <div className="flex flex-col items-center gap-1 border-t border-border/60 bg-surface px-6 py-4 text-center text-[13px] text-muted-foreground sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-4 sm:gap-y-2">
           <span>Funds held in a segregated account</span>
-          <span aria-hidden className="text-border">·</span>
+          <span aria-hidden className="hidden text-border sm:inline">·</span>
           <span>Released only on confirmation</span>
-          <span aria-hidden className="text-border">·</span>
+          <span aria-hidden className="hidden text-border sm:inline">·</span>
           <Link to="/pricing" className="hover:text-primary">
             1–2.5% fee, split between buyer and seller, based on item category
           </Link>
@@ -706,11 +706,11 @@ function ChapterBegin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                className="h-12 flex-1 rounded-full border border-white/30 bg-white/10 px-5 text-[15px] text-white placeholder:text-white/60 outline-none focus:border-white/60"
+                className="h-14 flex-1 rounded-full border-2 border-white/50 bg-white/15 px-6 text-base text-white placeholder:text-white/70 outline-none focus:border-white sm:h-12 sm:text-[15px]"
               />
               <button
                 type="submit"
-                className="h-12 shrink-0 rounded-full bg-white px-6 text-[15px] font-semibold text-foreground transition-transform hover:opacity-90 active:scale-[0.98]"
+                className="h-14 shrink-0 rounded-full bg-white px-6 text-base font-semibold text-foreground transition-transform hover:opacity-90 active:scale-[0.98] sm:h-12 sm:text-[15px]"
               >
                 Get updates
               </button>
