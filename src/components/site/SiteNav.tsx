@@ -183,6 +183,12 @@ export function SiteNav() {
             >
               Get Started
             </Link>
+            <Link
+              to="/auth/login"
+              className="mt-3 inline-flex h-12 items-center justify-center rounded-[12px] border border-border/70 px-4 text-base font-semibold text-foreground"
+            >
+              Sign in
+            </Link>
           </div>
         </div>
       )}
