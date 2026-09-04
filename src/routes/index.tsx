@@ -706,11 +706,11 @@ function ChapterBegin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email"
-                className="h-14 flex-1 rounded-full border-2 border-white/50 bg-white/15 px-6 text-base text-white placeholder:text-white/70 outline-none focus:border-white sm:h-12 sm:text-[15px]"
+                className="h-16 flex-1 rounded-full border-[3px] border-white bg-white/25 px-6 text-lg font-medium text-white placeholder:text-white/80 outline-none focus:bg-white/35 sm:h-12 sm:border-2 sm:border-white/50 sm:bg-white/15 sm:text-[15px] sm:font-normal"
               />
               <button
                 type="submit"
-                className="h-14 shrink-0 rounded-full bg-white px-6 text-base font-semibold text-foreground transition-transform hover:opacity-90 active:scale-[0.98] sm:h-12 sm:text-[15px]"
+                className="h-16 shrink-0 rounded-full bg-white px-6 text-lg font-semibold text-foreground transition-transform hover:opacity-90 active:scale-[0.98] sm:h-12 sm:text-[15px]"
               >
                 Get updates
               </button>
