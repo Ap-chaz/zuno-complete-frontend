@@ -112,7 +112,13 @@ export function SiteNav() {
           })}
         </div>
 
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-4 lg:flex">
+          <Link
+            to="/auth/login"
+            className="text-sm font-semibold text-foreground/80 transition-colors hover:text-foreground"
+          >
+            Sign in
+          </Link>
           <Link
             to="/auth/signup"
             className="inline-flex h-10 items-center rounded-full bg-primary pl-4 pr-3 text-sm font-semibold text-primary-foreground transition-transform hover:opacity-95 active:scale-[0.98]"
