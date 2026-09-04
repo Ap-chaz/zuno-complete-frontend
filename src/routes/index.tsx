@@ -422,42 +422,13 @@ function ChapterPreview() {
 
         <div className="mt-16 grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
           <Reveal>
-            <div className="mx-auto w-full max-w-[300px]">
-              <div className="relative rounded-[36px] border-4 border-white/15 bg-black/40 p-3 shadow-elevated">
-                <div className="rounded-[26px] bg-surface p-5 text-foreground">
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span>9:41</span>
-                    <div className="h-2 w-16 rounded-full bg-muted" />
-                  </div>
-                  <p className="mt-6 eyebrow text-primary">Escrow #ZUNO8FJ2K</p>
-                  <h4 className="mt-2 text-[17px] font-semibold">DJI Mini 4 Pro</h4>
-                  <p className="text-sm text-muted-foreground">KES 145,000</p>
-
-                  <div className="mt-6 flex items-center gap-2">
-                    {[Wallet, ShieldCheck, PackageCheck].map((Icon, i) => (
-                      <div key={i} className="flex flex-1 items-center gap-2">
-                        <div
-                          className={
-                            "grid h-9 w-9 shrink-0 place-items-center rounded-full border " +
-                            (i <= 1 ? "gradient-gold border-transparent text-primary-foreground" : "border-border text-muted-foreground")
-                          }
-                        >
-                          <Icon className="h-4 w-4" strokeWidth={2} />
-                        </div>
-                        {i < 2 && <div className={"h-[2px] flex-1 " + (i === 0 ? "bg-primary" : "bg-border")} />}
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-4 text-[13px] font-semibold text-primary">Funds held safely</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Released to the seller the moment you confirm delivery.
-                  </p>
-
-                  <button className="mt-6 w-full rounded-[12px] bg-primary py-3 text-[13px] font-semibold text-primary-foreground shadow-gold">
-                    Confirm delivery
-                  </button>
-                </div>
-              </div>
+            <div className="mx-auto w-full max-w-[300px] lg:max-w-[360px]">
+              <img
+                src="/marquee/phone-mockup-escrow.png"
+                alt="ZUNO app home screen showing KES 589,311 protected in escrow, active orders, and recent transactions"
+                className="w-full select-none"
+                draggable={false}
+              />
             </div>
           </Reveal>
 
