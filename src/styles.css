@@ -183,6 +183,29 @@
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Firefox: thin, theme-colored scrollbar instead of the OS default. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  /* Chrome/Edge/Safari: same idea via the -webkit- pseudo-elements. Applied
+     globally so every scrollable region (page, sidebar, modals) matches the
+     theme instead of showing a stark white bar in dark mode. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted-foreground);
+    background-clip: padding-box;
   }
   body {
     position: relative;

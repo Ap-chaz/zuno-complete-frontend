@@ -72,7 +72,7 @@ function SellerProfile() {
   ].filter(Boolean) as Array<{ key: string; label: string; url: string; icon: typeof Instagram }>;
 
   return (
-    <div className="flex flex-1 flex-col overflow-y-auto pb-28">
+    <div className="flex flex-1 flex-col overflow-y-auto">
       <TopBar title="Seller Profile" back="/app/sellers" />
 
       {/* Cover */}
