@@ -157,8 +157,11 @@ function SellerProfile() {
         <span>Every transaction with {seller.name} is protected by ZUNO escrow. Funds are only released after delivery confirmation.</span>
       </div>
 
-      {/* Sticky CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto w-full max-w-[424px] border-t border-border/40 bg-background/95 px-5 py-3 backdrop-blur">
+      {/* Sticky CTA — `sticky`, not `fixed`: it needs to pin to the bottom of
+          this page's own scroll pane (and therefore the content column's
+          actual width), not the raw browser viewport. `fixed` ignored the
+          sidebar entirely and centered on the whole window instead. */}
+      <div className="sticky bottom-0 z-10 border-t border-border/40 bg-background/95 px-5 py-3 backdrop-blur">
         <Link
           to="/app/new-escrow"
           className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-gold text-base font-semibold text-gold-foreground shadow-gold transition-opacity hover:opacity-95"
