@@ -79,7 +79,7 @@ function Home() {
       </header>
 
       <p className="mt-5 px-5 text-sm text-muted-foreground lg:hidden">
-        {t("home_greeting")}, {firstName} 👋
+        {timeOfDayGreeting()}, {firstName} 👋
       </p>
 
       {/* Balance card */}

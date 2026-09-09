@@ -76,16 +76,16 @@ function SellerProfile() {
       <TopBar title="Seller Profile" back="/app/sellers" />
 
       {/* Cover */}
-      <div className={`relative h-36 bg-gradient-to-br ${seller.color}`}>
+      <div className={`relative h-32 bg-gradient-to-br ${seller.color}`}>
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
       </div>
 
       {/* Logo + identity */}
-      <div className="-mt-12 px-5">
-        <div className="grid h-24 w-24 place-items-center rounded-3xl border-4 border-background bg-gradient-violet text-2xl font-bold shadow-card">
+      <div className="px-5">
+        <div className="-mt-10 mb-4 grid h-20 w-20 place-items-center rounded-3xl border-4 border-background bg-gradient-violet text-2xl font-bold shadow-card">
           {seller.initials}
         </div>
-        <div className="mt-3 flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <h1 className="truncate text-xl font-bold">{seller.name}</h1>

@@ -23,7 +23,7 @@ function Sellers() {
     <div className="flex flex-1 flex-col overflow-y-auto">
       <TopBar title="Verified Sellers" back="/app" />
 
-      <div className="px-5 pt-4">
+      <div className="px-5 pb-2 pt-4">
         <label className="flex h-12 items-center gap-3 rounded-2xl border border-border/60 bg-input px-4 focus-within:border-gold/50">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
@@ -35,12 +35,12 @@ function Sellers() {
         </label>
       </div>
 
-      <div className="mt-4 flex gap-2 overflow-x-auto px-5 pb-1 hide-scrollbar">
+      <div className="mt-2 flex gap-2 overflow-x-auto px-5 pb-2 hide-scrollbar">
         {SELLER_CATEGORIES.map((c) => (
           <button
             key={c}
             onClick={() => setCat(c)}
-            className={`shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${
+            className={`flex h-8 shrink-0 items-center rounded-full border px-4 text-xs font-semibold transition-colors ${
               cat === c ? "border-gold bg-gold text-gold-foreground" : "border-border bg-surface text-muted-foreground"
             }`}
           >
@@ -61,10 +61,10 @@ function Sellers() {
             <article key={s.id} className="overflow-hidden rounded-3xl border border-border/40 bg-surface shadow-card">
               <div className={`h-20 bg-gradient-to-br ${s.color}`} />
               <div className="p-4 pt-0">
-                <div className="-mt-8 grid h-16 w-16 place-items-center rounded-2xl border-4 border-surface bg-gradient-violet text-lg font-bold">
+                <div className="-mt-8 mb-3 grid h-16 w-16 place-items-center rounded-2xl border-4 border-surface bg-gradient-violet text-lg font-bold">
                   {s.initials}
                 </div>
-                <div className="mt-3 flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <h3 className="truncate font-semibold">{s.name}</h3>

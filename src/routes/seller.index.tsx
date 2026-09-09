@@ -40,6 +40,10 @@ function SellerHome() {
         </div>
       </header>
 
+      <p className="mt-5 px-5 text-sm text-muted-foreground lg:hidden">
+        {timeOfDayGreeting()}, Alvan 👋
+      </p>
+
       <div className="mx-5 mt-5 overflow-hidden rounded-3xl border border-border/40 bg-gradient-card p-6 shadow-card lg:mx-0 lg:mt-6 lg:p-8">
         <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground">TOTAL EARNINGS · JUNE</p>
         <p className="mt-2 text-4xl font-bold lg:text-5xl">{currency(1284500)}</p>
