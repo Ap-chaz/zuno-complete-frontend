@@ -56,3 +56,31 @@ export function getSellerVerificationSubmission(): BusinessVerificationSubmissio
     return null;
   }
 }
+
+/**
+ * Admin-only: approve, reject, or revoke the current device's business
+ * verification. This is what actually switches a seller from the Basic
+ * dashboard to the full Business dashboard (see seller.index.tsx).
+ *
+ * Same "prototype only" limitation as the rest of this file: there's no
+ * real backend, so this only affects the browser it's called from. In a
+ * real deployment this becomes a server-side status change that the
+ * seller's own session then reads on next load.
+ */
+export function setSellerVerificationTier(tier: SellerVerificationTier) {
+  const w = safeWindow();
+  if (!w) return;
+  try {
+    w.localStorage.setItem(TIER_KEY, tier);
+  } catch {}
+}
+
+/** Clears a submission entirely (e.g. after a rejection the seller must resubmit). */
+export function clearSellerVerificationSubmission() {
+  const w = safeWindow();
+  if (!w) return;
+  try {
+    w.localStorage.removeItem(SUBMISSION_KEY);
+    w.localStorage.removeItem(TIER_KEY);
+  } catch {}
+}
