@@ -1,9 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bell, TrendingUp, Package, Wallet, Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import {
+  Bell,
+  TrendingUp,
+  Package,
+  Wallet,
+  Star,
+  ArrowUpRight,
+  ArrowDownRight,
+  BadgeCheck,
+  Clock,
+  ShieldAlert,
+  Sparkles,
+  LineChart,
+  Zap,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/zuno/Logo";
 import { ThemeToggle } from "@/components/zuno/ThemeToggle";
 import { currency } from "@/lib/zuno-data";
+import { getSellerVerificationTier } from "@/lib/seller-business-verification";
+import type { SellerVerificationTier } from "@/types/models";
 
 export const Route = createFileRoute("/seller/")({
   head: () => ({ meta: [{ title: "Seller Dashboard — ZUNO" }] }),
@@ -17,9 +33,22 @@ function timeOfDayGreeting() {
   return "Good evening";
 }
 
+/**
+ * Every seller lands here first. Only sellers an admin has marked
+ * "verified" (business verification approved — see /seller/verification
+ * and the admin Seller Verification Queue) get the full analytics-heavy
+ * Business dashboard. Everyone else — the common case: someone who just
+ * wants to sell a phone or two through escrow, not run a shop — gets the
+ * simpler Basic dashboard, with a clear path to upgrade.
+ */
 function SellerHome() {
+  const tier = getSellerVerificationTier();
+  return tier === "verified" ? <BusinessDashboard /> : <BasicSellerDashboard tier={tier} />;
+}
+
+function SellerHeader({ subtitle }: { subtitle: string }) {
   return (
-    <div className="flex-1 overflow-y-auto pb-6">
+    <>
       <header className="flex items-center justify-between px-5 pt-6 lg:px-0 lg:pt-0">
         <div className="flex items-center gap-2 lg:hidden">
           <Logo />
@@ -27,7 +56,7 @@ function SellerHome() {
         </div>
         <div className="hidden lg:block">
           <h1 className="text-2xl font-bold tracking-tight">{timeOfDayGreeting()}, Alvan 👋</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Here's how your store is performing.</p>
+          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -39,10 +68,143 @@ function SellerHome() {
           </Link>
         </div>
       </header>
-
       <p className="mt-5 px-5 text-sm text-muted-foreground lg:hidden">
         {timeOfDayGreeting()}, Alvan 👋
       </p>
+    </>
+  );
+}
+
+/** Casual/occasional seller: simple totals + a clear upgrade path. No shop, no analytics — just their own deals. */
+function BasicSellerDashboard({ tier }: { tier: SellerVerificationTier }) {
+  return (
+    <div className="flex-1 overflow-y-auto pb-6">
+      <SellerHeader subtitle="Here's a quick look at your ZUNO sales." />
+
+      <div className="mx-5 mt-5 lg:mx-0 lg:mt-6">
+        <VerificationStatusCard tier={tier} />
+      </div>
+
+      <div className="mt-6 grid grid-cols-2 gap-3 px-5 lg:mt-6 lg:grid-cols-4 lg:gap-4 lg:px-0">
+        <Stat icon={Wallet} label="Total earned" value={currency(86400)} delta="all time" />
+        <Stat icon={Package} label="Active orders" value="2" delta="in escrow" />
+        <Stat icon={TrendingUp} label="Completed" value="9" delta="all time" />
+        <Stat icon={Star} label="Avg. rating" value="4.7" delta="12 reviews" />
+      </div>
+
+      <section className="mt-7 px-5 lg:mt-8 lg:px-0">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold lg:text-lg">Recent activity</h2>
+          <Link to="/seller/transactions" className="flex items-center gap-1 text-xs font-medium text-gold lg:text-sm">
+            See all <ArrowUpRight className="h-3 w-3" />
+          </Link>
+        </div>
+        <ul className="mt-3 space-y-2 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+          {[
+            { item: "iPhone 13, 128GB", buyer: "Wanjiru K.", amount: 52000, status: "Funded", up: true },
+            { item: "PS5 controller (used)", buyer: "Denis O.", amount: 6400, status: "Completed", up: true },
+          ].map((r, i) => (
+            <li key={i} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border border-border/40 bg-surface p-3.5 transition-colors hover:bg-surface-2">
+              <span className={`grid h-10 w-10 place-items-center rounded-2xl ${r.up ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}>
+                {r.up ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{r.item}</p>
+                <p className="truncate text-xs text-muted-foreground">{r.buyer}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-bold">{currency(r.amount)}</p>
+                <p className="text-[10px] text-muted-foreground">{r.status}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+function VerificationStatusCard({ tier }: { tier: SellerVerificationTier }) {
+  if (tier === "pending") {
+    return (
+      <div className="rounded-3xl border border-gold/30 bg-gold/5 p-5 shadow-card lg:p-6">
+        <div className="flex items-center gap-3">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gold/15 text-gold">
+            <Clock className="h-6 w-6" />
+          </span>
+          <div>
+            <p className="font-bold">Business verification in review</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">Usually takes under 24 hours. We'll notify you.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (tier === "flagged") {
+    return (
+      <div className="rounded-3xl border border-destructive/30 bg-destructive/5 p-5 shadow-card lg:p-6">
+        <div className="flex items-center gap-3">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-destructive/15 text-destructive">
+            <ShieldAlert className="h-6 w-6" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-bold">Verification needs another look</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">Some details couldn't be confirmed. Resubmit when you're ready.</p>
+          </div>
+        </div>
+        <Link
+          to="/seller/verification"
+          className="mt-4 flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold transition-opacity hover:opacity-95 lg:w-auto lg:px-8"
+        >
+          Resubmit details
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-border/40 bg-gradient-card p-5 shadow-card lg:p-6">
+      <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.18em] text-muted-foreground">
+        <Sparkles className="h-3.5 w-3.5 text-gold" /> BASIC PLAN
+      </div>
+      <h2 className="mt-2 text-xl font-bold lg:text-2xl">Unlock your Business Dashboard</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Get verified as a business seller to unlock sales analytics, a public seller profile buyers can browse, and a verified badge.
+      </p>
+
+      <ul className="mt-4 space-y-2">
+        <BenefitRow icon={LineChart} label="Full sales analytics & earnings chart" />
+        <BenefitRow icon={BadgeCheck} label="Verified badge + listing in buyer search" />
+        <BenefitRow icon={Zap} label="Priority payout processing" />
+      </ul>
+
+      <Link
+        to="/seller/verification"
+        className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold transition-opacity hover:opacity-95 lg:w-auto lg:px-8"
+      >
+        Start business verification <ArrowUpRight className="h-4 w-4" />
+      </Link>
+    </div>
+  );
+}
+
+function BenefitRow({ icon: Icon, label }: { icon: typeof LineChart; label: string }) {
+  return (
+    <li className="flex items-center gap-2.5 text-sm">
+      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gold/15 text-gold">
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      {label}
+    </li>
+  );
+}
+
+/** Verified business seller: full analytics dashboard. Unlocked once an admin approves business verification. */
+function BusinessDashboard() {
+  return (
+    <div className="flex-1 overflow-y-auto pb-6">
+      <SellerHeader subtitle="Here's how your store is performing." />
 
       <div className="mx-5 mt-5 overflow-hidden rounded-3xl border border-border/40 bg-gradient-card p-6 shadow-card lg:mx-0 lg:mt-6 lg:p-8">
         <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground">TOTAL EARNINGS · JUNE</p>
@@ -125,7 +287,6 @@ function SellerHome() {
           </ul>
         </section>
       </div>
-
     </div>
   );
 }
