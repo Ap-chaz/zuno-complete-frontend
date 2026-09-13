@@ -13,12 +13,17 @@ import {
   Eye,
   Receipt,
   Pencil,
+  Clock,
+  ShieldAlert,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
 import { currency } from "@/lib/zuno-data";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/hooks/useLanguage";
+import { getSellerVerificationTier } from "@/lib/seller-business-verification";
+import type { SellerVerificationTier } from "@/types/models";
 
 export const Route = createFileRoute("/seller/account")({
   head: () => ({ meta: [{ title: "Seller Profile — ZUNO" }] }),
@@ -26,9 +31,11 @@ export const Route = createFileRoute("/seller/account")({
 });
 
 function SellerAccount() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const tier = getSellerVerificationTier();
+  const isBusiness = tier === "verified";
 
   const handleLogout = async () => {
     await logout();
@@ -44,19 +51,18 @@ function SellerAccount() {
       <div className="mx-5 mt-4 rounded-3xl border border-border/40 bg-gradient-card p-5 shadow-card">
         <div className="flex items-center gap-4">
           <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-gold text-2xl font-bold text-gold-foreground">
-            Z
+            {isBusiness ? "Z" : (user?.avatarInitial ?? user?.name?.charAt(0) ?? "A")}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <p className="truncate text-lg font-semibold">Zuri Boutique KE</p>
-              <BadgeCheck className="h-4 w-4 text-gold" />
+              <p className="truncate text-lg font-semibold">{isBusiness ? "Zuri Boutique KE" : (user?.name ?? "Alvan Mwangi")}</p>
+              {isBusiness && <BadgeCheck className="h-4 w-4 text-gold" />}
             </div>
-            <p className="truncate text-xs text-muted-foreground">hello@zuriboutique.co.ke</p>
-            <p className="truncate text-xs text-muted-foreground">+254 720 118 442</p>
+            <p className="truncate text-xs text-muted-foreground">{isBusiness ? "hello@zuriboutique.co.ke" : (user?.email ?? "—")}</p>
+            <p className="truncate text-xs text-muted-foreground">{isBusiness ? "+254 720 118 442" : (user?.phone ?? "—")}</p>
           </div>
           <Link
             to="/seller/settings"
-
             className="grid h-9 w-9 place-items-center rounded-xl bg-surface-2 text-gold"
             aria-label="Edit profile"
           >
@@ -66,35 +72,25 @@ function SellerAccount() {
 
         <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border/40 pt-4 text-center">
           <div>
-            <p className="text-base font-bold">4.9</p>
+            <p className="text-base font-bold">{isBusiness ? "4.9" : "4.7"}</p>
             <p className="text-[10px] text-muted-foreground">Rating</p>
           </div>
           <div>
-            <p className="text-base font-bold">328</p>
+            <p className="text-base font-bold">{isBusiness ? "328" : "9"}</p>
             <p className="text-[10px] text-muted-foreground">Deals</p>
           </div>
           <div>
-            <p className="text-base font-bold">{currency(1284500)}</p>
+            <p className="text-base font-bold">{currency(isBusiness ? 1284500 : 86400)}</p>
             <p className="text-[10px] text-muted-foreground">Earned</p>
           </div>
         </div>
       </div>
 
       {/* Verification banner */}
-      <Link
-        to="/seller/verification"
-        className="mx-5 mt-4 flex items-center gap-3 rounded-2xl border border-gold/30 bg-gold/5 p-4"
-      >
-        <ShieldCheck className="h-6 w-6 text-gold" />
-        <div className="flex-1">
-          <p className="text-sm font-semibold">Verification Status</p>
-          <p className="text-xs text-muted-foreground">KRA verified · Business docs pending</p>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Link>
+      <VerificationBanner tier={tier} />
 
-      {/* Business */}
-      <Section title="Business">
+      {/* Business / Account */}
+      <Section title={isBusiness ? "Business" : "Account"}>
         <Row icon={User} label="Edit profile" to="/seller/settings" />
         <Row icon={Landmark} label="Linked bank & mobile money" to="/seller/settings" />
         <Row icon={Receipt} label="Transaction history" to="/seller/transactions" />
@@ -125,6 +121,61 @@ function SellerAccount() {
         <p className="mt-4 text-center text-[11px] text-muted-foreground">ZUNO v1.0.0 · Seller</p>
       </div>
     </div>
+  );
+}
+
+function VerificationBanner({ tier }: { tier: SellerVerificationTier }) {
+  if (tier === "verified") {
+    return (
+      <Link
+        to="/seller/verification"
+        className="mx-5 mt-4 flex items-center gap-3 rounded-2xl border border-gold/30 bg-gold/5 p-4"
+      >
+        <ShieldCheck className="h-6 w-6 text-gold" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold">Verification Status</p>
+          <p className="text-xs text-muted-foreground">KRA verified · Business docs pending</p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </Link>
+    );
+  }
+
+  if (tier === "pending") {
+    return (
+      <Link to="/seller/verification" className="mx-5 mt-4 flex items-center gap-3 rounded-2xl border border-gold/30 bg-gold/5 p-4">
+        <Clock className="h-6 w-6 text-gold" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold">Verification in review</p>
+          <p className="text-xs text-muted-foreground">Usually takes under 24 hours</p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </Link>
+    );
+  }
+
+  if (tier === "flagged") {
+    return (
+      <Link to="/seller/verification" className="mx-5 mt-4 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+        <ShieldAlert className="h-6 w-6 text-destructive" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold">Verification needs another look</p>
+          <p className="text-xs text-muted-foreground">Tap to review and resubmit</p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </Link>
+    );
+  }
+
+  return (
+    <Link to="/seller/verification" className="mx-5 mt-4 flex items-center gap-3 rounded-2xl border border-border/40 bg-surface p-4">
+      <Sparkles className="h-6 w-6 text-gold" />
+      <div className="flex-1">
+        <p className="text-sm font-semibold">You're on the Basic plan</p>
+        <p className="text-xs text-muted-foreground">Verify your business to unlock the Business dashboard</p>
+      </div>
+      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </Link>
   );
 }
 
