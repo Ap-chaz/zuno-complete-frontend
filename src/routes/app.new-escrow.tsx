@@ -44,7 +44,17 @@ const initial: FormState = {
   agreed: false, payment: "",
 };
 
-function NewEscrow() {
+/**
+ * `demo`: this is a walkthrough, not a real deal — skips persisting to the
+ * real transaction list (so it can't pollute a real user's Home/Activity)
+ * and skips the KYC gate (so it's usable by anyone, verified or not).
+ *
+ * `auto`: fully passive playback. Instead of waiting for the person to
+ * type and tap, an orchestration effect below calls the exact same `set`
+ * and `setStep` the real UI uses, on a timeline — so every screen is the
+ * real thing, just filling and advancing itself while they watch.
+ */
+export function NewEscrow({ demo = false, auto = false }: { demo?: boolean; auto?: boolean } = {}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(1);
@@ -59,10 +69,41 @@ function NewEscrow() {
   const total = amountNum + fee;
   const dealId = useMemo(() => "ZUNO" + Math.random().toString(36).slice(2, 12).toUpperCase(), []);
 
+  // Auto-play: fills fields and advances steps on a fixed timeline, one
+  // step at a time, using the exact same setters the real form uses.
+  useEffect(() => {
+    if (!auto) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
+
+    if (step === 1) {
+      at(900, () => set("product", "iPhone 17 Pro Max"));
+      at(1800, () => set("description", "Brand new, sealed box"));
+      at(2700, () => set("sellerName", "Gadget World"));
+      at(3600, () => set("sellerContact", "+254 712 345 678"));
+      at(4500, () => set("amount", "191311"));
+      at(6000, () => setStep(2));
+    } else if (step === 2) {
+      at(2200, () => set("agreed", true));
+      at(3800, () => setStep(3));
+    } else if (step === 3) {
+      // Step3 already shows its own "seller accepted" beat around 2.2s in.
+      at(4500, () => setStep(4));
+    } else if (step === 4) {
+      at(1800, () => set("payment", "mpesa"));
+      at(3400, () => setStep(6));
+    }
+
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto, step]);
+
   // Once escrow is funded (step 6), persist it as a real transaction so it
   // shows up in Activity/Home instead of disappearing once the wizard closes.
+  // Demo runs skip this entirely — nothing should land in a real user's
+  // actual transaction list just because they tried the demo.
   useEffect(() => {
-    if (step !== 6 || persistedId) return;
+    if (demo || step !== 6 || persistedId) return;
     transactionsService
       .create({
         item: form.product || "New item",
@@ -80,10 +121,10 @@ function NewEscrow() {
         // Non-fatal — the confirmation screen still shows the deal summary
         // even if persistence fails; the user can retry from Activity.
       });
-  }, [step, persistedId, form, amountNum, queryClient]);
+  }, [demo, step, persistedId, form, amountNum, queryClient]);
 
   const back = () => {
-    if (step === 1) navigate({ to: "/app" });
+    if (step === 1) navigate({ to: demo ? "/app/demo" : "/app" });
     else setStep((s) => (s - 1) as Step);
   };
 
@@ -96,7 +137,7 @@ function NewEscrow() {
         </button>
         <div className="flex-1">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Step {step} of 6
+            {demo ? `Demo · Step ${step} of 6` : `Step ${step} of 6`}
           </p>
           <h1 className="text-base font-bold">
             {step === 1 && "Create New Escrow"}
@@ -107,6 +148,9 @@ function NewEscrow() {
             {step === 6 && "Escrow Confirmed"}
           </h1>
         </div>
+        {demo && (
+          <span className="rounded-full border border-gold/40 bg-gold/10 px-2.5 py-1 text-[10px] font-bold tracking-wide text-gold">DEMO</span>
+        )}
         <ThemeToggle />
       </header>
 
@@ -120,46 +164,54 @@ function NewEscrow() {
         </div>
       </div>
 
-      {step === 1 && (
-        <Step1 form={form} set={set} onNext={() => setStep(2)} />
-      )}
-      {step === 2 && (
-        <Step2
-          form={form}
-          fee={fee}
-          total={total}
-          amountNum={amountNum}
-          onAgree={(v) => set("agreed", v)}
-          onNext={() => setStep(3)}
-        />
-      )}
-      {step === 3 && <Step3 onNext={() => setStep(4)} />}
-      {step === 4 && (
-        <Step4
-          form={form}
-          fee={fee}
-          total={total}
-          amountNum={amountNum}
-          onPick={(p) => set("payment", p)}
-          onNext={() => setStep(form.payment === "qr" ? 5 : 6)}
-        />
-      )}
-      {step === 5 && (
-        <Step5 total={total} dealId={dealId} onDone={() => setStep(6)} />
-      )}
-      {step === 6 && <Step6 form={form} amountNum={amountNum} dealId={persistedId ?? dealId} />}
+      <div className={auto && step < 6 ? "pointer-events-none" : undefined}>
+        {step === 1 && (
+          <Step1 form={form} set={set} onNext={() => setStep(2)} demo={demo} />
+        )}
+        {step === 2 && (
+          <Step2
+            form={form}
+            fee={fee}
+            total={total}
+            amountNum={amountNum}
+            onAgree={(v) => set("agreed", v)}
+            onNext={() => setStep(3)}
+          />
+        )}
+        {step === 3 && <Step3 onNext={() => setStep(4)} />}
+        {step === 4 && (
+          <Step4
+            form={form}
+            fee={fee}
+            total={total}
+            amountNum={amountNum}
+            onPick={(p) => set("payment", p)}
+            onNext={() => setStep(form.payment === "qr" ? 5 : 6)}
+          />
+        )}
+        {step === 5 && (
+          <Step5 total={total} dealId={dealId} onDone={() => setStep(6)} />
+        )}
+        {step === 6 && <Step6 form={form} amountNum={amountNum} dealId={persistedId ?? dealId} demo={demo} />}
+      </div>
     </div>
   );
 }
 
 /* ---------------- Step 1: Details ---------------- */
 function Step1({
-  form, set, onNext,
-}: { form: FormState; set: <K extends keyof FormState>(k: K, v: FormState[K]) => void; onNext: () => void }) {
+  form, set, onNext, demo,
+}: { form: FormState; set: <K extends keyof FormState>(k: K, v: FormState[K]) => void; onNext: () => void; demo?: boolean }) {
   const valid = form.product && form.sellerName && form.sellerContact && form.amount;
   return (
     <div className="px-5 pt-5">
-      <TrustBanner text="Your details build a binding contract held safely in escrow." />
+      <TrustBanner
+        text={
+          demo
+            ? "This is a demo — fill in anything you like. Nothing here will be charged or saved to a real deal."
+            : "Your details build a binding contract held safely in escrow."
+        }
+      />
       <div className="mt-5 space-y-4">
         <Field label="Product / Service Name" value={form.product} onChange={(v) => set("product", v)} placeholder="e.g. iPhone 17 Pro Max" />
         <Field label="Product Description" value={form.description} onChange={(v) => set("description", v)} placeholder="Condition, specs, colour…" textarea />
@@ -421,7 +473,7 @@ function Step5({ total, dealId, onDone }: { total: number; dealId: string; onDon
 }
 
 /* ---------------- Step 6: Confirmation ---------------- */
-function Step6({ form, amountNum, dealId }: { form: FormState; amountNum: number; dealId: string }) {
+function Step6({ form, amountNum, dealId, demo }: { form: FormState; amountNum: number; dealId: string; demo?: boolean }) {
   const tracker = [
     { label: "Create Deal", done: true },
     { label: "Contract Accepted", done: true },
@@ -469,19 +521,39 @@ function Step6({ form, amountNum, dealId }: { form: FormState; amountNum: number
         </ul>
       </div>
 
-      <Link
-        to="/app/tracking/$id"
-        params={{ id: dealId }}
-        className="mt-6 flex h-12 items-center justify-center gap-2 rounded-2xl bg-gold font-semibold text-gold-foreground shadow-card active:scale-[0.98]"
-      >
-        Track Deal <ChevronRight className="h-4 w-4" />
-      </Link>
-      <Link
-        to="/app"
-        className="mt-3 flex h-12 items-center justify-center rounded-2xl border border-border/40 bg-surface text-sm font-medium text-muted-foreground"
-      >
-        Back to Home
-      </Link>
+      {demo ? (
+        <>
+          <TrustBanner text="That's the whole flow — that's exactly what happens on a real deal, start to finish. Nothing here was charged or saved." />
+          <Link
+            to="/app/new-escrow"
+            className="mt-4 flex h-12 items-center justify-center gap-2 rounded-2xl bg-gold font-semibold text-gold-foreground shadow-card active:scale-[0.98]"
+          >
+            Start a real escrow <ChevronRight className="h-4 w-4" />
+          </Link>
+          <Link
+            to="/app"
+            className="mt-3 flex h-12 items-center justify-center rounded-2xl border border-border/40 bg-surface text-sm font-medium text-muted-foreground"
+          >
+            Back to Home
+          </Link>
+        </>
+      ) : (
+        <>
+          <Link
+            to="/app/tracking/$id"
+            params={{ id: dealId }}
+            className="mt-6 flex h-12 items-center justify-center gap-2 rounded-2xl bg-gold font-semibold text-gold-foreground shadow-card active:scale-[0.98]"
+          >
+            Track Deal <ChevronRight className="h-4 w-4" />
+          </Link>
+          <Link
+            to="/app"
+            className="mt-3 flex h-12 items-center justify-center rounded-2xl border border-border/40 bg-surface text-sm font-medium text-muted-foreground"
+          >
+            Back to Home
+          </Link>
+        </>
+      )}
     </div>
   );
 }

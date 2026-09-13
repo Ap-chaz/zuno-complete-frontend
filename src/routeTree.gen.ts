@@ -41,6 +41,7 @@ import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as AdminTransactionsRouteImport } from './routes/admin.transactions'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAccountRouteImport } from './routes/app.account'
+import { Route as AppDemoRouteImport } from './routes/app.demo'
 import { Route as AppDisputesRouteImport } from './routes/app.disputes'
 import { Route as AppNewEscrowRouteImport } from './routes/app.new-escrow'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
@@ -232,6 +233,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppAccountRoute = AppAccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDemoRoute = AppDemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDisputesRoute = AppDisputesRouteImport.update({
@@ -426,6 +432,7 @@ export interface FileRoutesByFullPath {
   '/admin/support': typeof AdminSupportRoute
   '/admin/transactions': typeof AdminTransactionsRoute
   '/app/account': typeof AppAccountRoute
+  '/app/demo': typeof AppDemoRoute
   '/app/disputes': typeof AppDisputesRoute
   '/app/new-escrow': typeof AppNewEscrowRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -490,6 +497,7 @@ export interface FileRoutesByTo {
   '/admin/support': typeof AdminSupportRoute
   '/admin/transactions': typeof AdminTransactionsRoute
   '/app/account': typeof AppAccountRoute
+  '/app/demo': typeof AppDemoRoute
   '/app/disputes': typeof AppDisputesRoute
   '/app/new-escrow': typeof AppNewEscrowRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -557,6 +565,7 @@ export interface FileRoutesById {
   '/admin/support': typeof AdminSupportRoute
   '/admin/transactions': typeof AdminTransactionsRoute
   '/app/account': typeof AppAccountRoute
+  '/app/demo': typeof AppDemoRoute
   '/app/disputes': typeof AppDisputesRoute
   '/app/new-escrow': typeof AppNewEscrowRoute
   '/app/notifications': typeof AppNotificationsRoute
@@ -625,6 +634,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/transactions'
     | '/app/account'
+    | '/app/demo'
     | '/app/disputes'
     | '/app/new-escrow'
     | '/app/notifications'
@@ -689,6 +699,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/transactions'
     | '/app/account'
+    | '/app/demo'
     | '/app/disputes'
     | '/app/new-escrow'
     | '/app/notifications'
@@ -755,6 +766,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/transactions'
     | '/app/account'
+    | '/app/demo'
     | '/app/disputes'
     | '/app/new-escrow'
     | '/app/notifications'
@@ -1056,6 +1068,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccountRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/demo': {
+      id: '/app/demo'
+      path: '/demo'
+      fullPath: '/app/demo'
+      preLoaderRoute: typeof AppDemoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/disputes': {
       id: '/app/disputes'
       path: '/disputes'
@@ -1285,6 +1304,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAccountRoute: typeof AppAccountRoute
+  AppDemoRoute: typeof AppDemoRoute
   AppDisputesRoute: typeof AppDisputesRoute
   AppNewEscrowRoute: typeof AppNewEscrowRoute
   AppNotificationsRoute: typeof AppNotificationsRoute
@@ -1304,6 +1324,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAccountRoute: AppAccountRoute,
+  AppDemoRoute: AppDemoRoute,
   AppDisputesRoute: AppDisputesRoute,
   AppNewEscrowRoute: AppNewEscrowRoute,
   AppNotificationsRoute: AppNotificationsRoute,

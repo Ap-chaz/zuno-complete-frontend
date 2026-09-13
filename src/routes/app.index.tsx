@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bell, Shield, QrCode, ArrowUpRight, ShieldCheck, Package, FilePlus, Inbox } from "lucide-react";
+import { Bell, Shield, PlayCircle, ArrowUpRight, ShieldCheck, Package, FilePlus, Inbox } from "lucide-react";
 import { Logo } from "@/components/zuno/Logo";
 import { ThemeToggle } from "@/components/zuno/ThemeToggle";
 import { EmptyState, ListSkeleton } from "@/components/common/StateViews";
@@ -104,7 +104,7 @@ function Home() {
       {/* Quick actions */}
       <section className="mt-6 grid grid-cols-3 gap-3 px-5 lg:mt-6 lg:gap-4 lg:px-0">
         <Action to="/app/new-escrow" icon={FilePlus} label="New escrow" />
-        <Action to="/app/scan" icon={QrCode} label="Scan QR" />
+        <Action to="/app/demo" icon={PlayCircle} label="Demo" />
         <Action to="/app/safepay" icon={ShieldCheck} label="SafePay" />
       </section>
 
