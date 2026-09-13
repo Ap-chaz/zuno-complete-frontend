@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/common/StateViews";
 
 export const Route = createFileRoute("/help")({
   head: () => ({ meta: [{ title: "Help & Support — ZUNO" }] }),
-  component: Help,
+  component: () => <Help backTo="/app/account" reportTo="/app/disputes" />,
 });
 
 const faqs = [
@@ -19,7 +19,7 @@ const faqs = [
   { q: "Is my money safe?", a: "Funds are held in licensed partner banks under regulated custody with full audit trails." },
 ];
 
-function Help() {
+export function Help({ backTo, reportTo }: { backTo: string; reportTo: string }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState<number | null>(0);
   const [query, setQuery] = useState("");
@@ -34,7 +34,7 @@ function Help() {
 
   return (
     <PhoneFrame>
-      <TopBar title="Help & Support" back="/app/account" />
+      <TopBar title="Help & Support" back={backTo} />
       <div className="flex-1 overflow-y-auto px-5 pt-4 pb-8">
         <label className="flex h-12 items-center gap-3 rounded-2xl border border-border/60 bg-input px-4 focus-within:border-gold/50">
           <Search className="h-4 w-4 text-muted-foreground" />
@@ -49,7 +49,7 @@ function Help() {
         <div className="mt-4 grid grid-cols-3 gap-3">
           <Quick icon={MessageCircle} label="Chat" gold onClick={startChat} />
           <Quick icon={Mail} label="Email" onClick={() => (window.location.href = "mailto:support@zuno.app")} />
-          <Quick icon={AlertTriangle} label="Report" onClick={() => navigate({ to: "/app/disputes" })} />
+          <Quick icon={AlertTriangle} label="Report" onClick={() => navigate({ to: reportTo })} />
         </div>
 
         <p className="mt-6 px-1 text-xs font-bold tracking-[0.18em] text-muted-foreground">FREQUENTLY ASKED</p>

@@ -1,9 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Phone, Truck, CheckCircle2, Package } from "lucide-react";
+import { Phone, Truck, CheckCircle2, Package, MapPin, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
 import { EmptyState } from "@/components/common/StateViews";
+import { currency } from "@/lib/zuno-data";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/seller/deliveries")({
   head: () => ({ meta: [{ title: "Delivery Management — ZUNO" }] }),
@@ -12,23 +20,25 @@ export const Route = createFileRoute("/seller/deliveries")({
 
 const tabs = ["Waiting", "Active", "Completed"] as const;
 type Tab = (typeof tabs)[number];
-type Order = { item: string; buyer: string; id: string };
+type Order = { item: string; buyer: string; id: string; amount: number; address: string; placedAt: string };
 
 const INITIAL_ORDERS: Record<Tab, Order[]> = {
   Waiting: [
-    { item: "iPhone 17 Pro Max", buyer: "Alvan Mwangi", id: "ZUNOAXFVLO4Y8Y" },
-    { item: "AirPods Pro 3", buyer: "Brenda Kerubo", id: "ZUNO22HJ8K9L0M" },
+    { item: "iPhone 17 Pro Max", buyer: "Alvan Mwangi", id: "ZUNOAXFVLO4Y8Y", amount: 191311, address: "Kilimani, Nairobi", placedAt: "2026-09-11T09:20:00.000Z" },
+    { item: "AirPods Pro 3", buyer: "Brenda Kerubo", id: "ZUNO22HJ8K9L0M", amount: 32500, address: "Westlands, Nairobi", placedAt: "2026-09-12T14:05:00.000Z" },
   ],
-  Active: [{ item: "MacBook Air M4", buyer: "James Otieno", id: "ZUNO9KLP2M3N4Q" }],
+  Active: [{ item: "MacBook Air M4", buyer: "James Otieno", id: "ZUNO9KLP2M3N4Q", amount: 168000, address: "Ruaka, Kiambu", placedAt: "2026-09-08T11:40:00.000Z" }],
   Completed: [
-    { item: "Sony WH-1000XM6", buyer: "Mary Wanjiru", id: "ZUNO7HG6FD5SA1" },
-    { item: "Apple Watch Ultra", buyer: "Peter Kim", id: "ZUNO5UI6OP7AS8" },
+    { item: "Sony WH-1000XM6", buyer: "Mary Wanjiru", id: "ZUNO7HG6FD5SA1", amount: 45900, address: "Karen, Nairobi", placedAt: "2026-08-30T16:15:00.000Z" },
+    { item: "Apple Watch Ultra", buyer: "Peter Kim", id: "ZUNO5UI6OP7AS8", amount: 89000, address: "Lavington, Nairobi", placedAt: "2026-08-27T10:00:00.000Z" },
   ],
 };
 
 function Deliveries() {
   const [tab, setTab] = useState<Tab>("Waiting");
   const [orders, setOrders] = useState<Record<Tab, Order[]>>(INITIAL_ORDERS);
+  const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
+  const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
 
   const moveOrder = (order: Order, from: Tab, to: Tab, message: string) => {
     setOrders((prev) => ({
@@ -81,14 +91,145 @@ function Deliveries() {
                     <Action icon={CheckCircle2} label="Delivered" gold onClick={() => moveOrder(o, "Active", "Completed", `${o.item} marked as delivered.`)} />
                   )}
                   {tab === "Completed" && (
-                    <Action icon={Package} label="Receipt" gold onClick={() => toast.info("Receipt downloads are coming soon.")} />
+                    <Action icon={Package} label="Receipt" gold onClick={() => setReceiptOrder(o)} />
                   )}
-                  <Action icon={Package} label="Details" onClick={() => toast.info("Order details are coming soon.")} />
+                  <Action icon={Package} label="Details" onClick={() => setDetailsOrder(o)} />
                 </div>
               </li>
             ))}
           </ul>
         )}
+      </div>
+
+      <Dialog open={detailsOrder !== null} onOpenChange={(open) => !open && setDetailsOrder(null)}>
+        <DialogContent>
+          {detailsOrder && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{detailsOrder.item}</DialogTitle>
+                <DialogDescription className="font-mono text-xs">#{detailsOrder.id}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-border/40 bg-surface-2 p-4">
+                  <p className="text-xs text-muted-foreground">Escrow amount</p>
+                  <p className="mt-1 text-2xl font-bold">{currency(detailsOrder.amount)}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Held safely until the buyer confirms delivery — released to you the moment they do.
+                  </p>
+                </div>
+                <Detail icon={Package} label="Buyer" value={detailsOrder.buyer} />
+                <Detail icon={MapPin} label="Delivery address" value={detailsOrder.address} />
+                <Detail
+                  icon={Clock}
+                  label="Order placed"
+                  value={new Date(detailsOrder.placedAt).toLocaleString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                />
+                <Detail icon={Truck} label="Status" value={tab} />
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={receiptOrder !== null} onOpenChange={(open) => !open && setReceiptOrder(null)}>
+        <DialogContent>
+          {receiptOrder && <ReceiptView order={receiptOrder} />}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function ReceiptView({ order }: { order: Order }) {
+  // Flat 1.75% (medium-tier) escrow fee, split evenly, matching the rate
+  // shown on the public pricing page — real per-listing fee tiers aren't
+  // tracked in this mock data yet.
+  const feePct = 0.0175;
+  const totalFee = Math.round(order.amount * feePct);
+  const sellerFee = Math.round(totalFee / 2);
+  const payout = order.amount - sellerFee;
+  const dateStr = new Date(order.placedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+
+  const handlePrint = () => {
+    const w = window.open("", "_blank", "width=420,height=700");
+    if (!w) {
+      toast.error("Please allow pop-ups to download the receipt.");
+      return;
+    }
+    w.document.write(`
+      <html>
+        <head>
+          <title>Receipt #${order.id}</title>
+          <style>
+            body { font-family: -apple-system, Inter, sans-serif; padding: 32px; color: #141a29; }
+            h1 { font-size: 18px; margin: 0 0 4px; }
+            .muted { color: #6b7280; font-size: 12px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+            td { padding: 8px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+            td:last-child { text-align: right; font-weight: 600; }
+            .total td { border-top: 2px solid #141a29; border-bottom: none; font-size: 16px; padding-top: 12px; }
+            .logo { color: #E8A23D; font-weight: 800; font-size: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="logo">ZUNO</div>
+          <h1>Payout Receipt</h1>
+          <p class="muted">#${order.id} · ${dateStr}</p>
+          <table>
+            <tr><td>Item</td><td>${order.item}</td></tr>
+            <tr><td>Buyer</td><td>${order.buyer}</td></tr>
+            <tr><td>Escrow amount</td><td>${currency(order.amount)}</td></tr>
+            <tr><td>ZUNO fee (seller share)</td><td>-${currency(sellerFee)}</td></tr>
+            <tr class="total"><td>Paid out to you</td><td>${currency(payout)}</td></tr>
+          </table>
+        </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    w.print();
+  };
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Receipt</DialogTitle>
+        <DialogDescription className="font-mono text-xs">#{order.id}</DialogDescription>
+      </DialogHeader>
+      <div className="space-y-3">
+        <div className="rounded-2xl border border-border/40 bg-surface-2 p-4">
+          <p className="text-xs text-muted-foreground">Paid out to you</p>
+          <p className="mt-1 text-2xl font-bold">{currency(order.amount - sellerFee)}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{order.item} · {dateStr}</p>
+        </div>
+        <Detail icon={Package} label="Escrow amount" value={currency(order.amount)} />
+        <Detail icon={Package} label="ZUNO fee (your share)" value={`-${currency(sellerFee)}`} />
+        <Detail icon={Package} label="Buyer" value={order.buyer} />
+        <button
+          onClick={handlePrint}
+          className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold"
+        >
+          <Package className="h-4 w-4" /> Save as PDF
+        </button>
+      </div>
+    </>
+  );
+}
+
+function Detail({ icon: Icon, label, value }: { icon: typeof Package; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border/40 px-3 py-2.5">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted-foreground">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] text-muted-foreground">{label}</p>
+        <p className="truncate text-sm font-semibold">{value}</p>
       </div>
     </div>
   );

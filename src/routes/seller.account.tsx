@@ -111,7 +111,7 @@ function SellerAccount() {
       <Section title="ZUNO">
         <Row icon={ShieldCheck} label="SafePay protection" to="/seller/safepay" />
 
-        <Row icon={HelpCircle} label="Help & support" to="/help" />
+        <Row icon={HelpCircle} label="Help & support" to="/seller/help" />
         <Row icon={FileText} label="Terms & conditions" to="/terms" external />
       </Section>
 

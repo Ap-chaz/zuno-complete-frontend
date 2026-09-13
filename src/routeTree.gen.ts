@@ -62,6 +62,8 @@ import { Route as SellerIndexRouteImport } from './routes/seller.index'
 import { Route as SellerAccountRouteImport } from './routes/seller.account'
 import { Route as SellerCustomersRouteImport } from './routes/seller.customers'
 import { Route as SellerDeliveriesRouteImport } from './routes/seller.deliveries'
+import { Route as SellerDisputesRouteImport } from './routes/seller.disputes'
+import { Route as SellerHelpRouteImport } from './routes/seller.help'
 import { Route as SellerNotificationsRouteImport } from './routes/seller.notifications'
 import { Route as SellerProtectedDealRouteImport } from './routes/seller.protected-deal'
 import { Route as SellerSafepayRouteImport } from './routes/seller.safepay'
@@ -337,6 +339,16 @@ const SellerDeliveriesRoute = SellerDeliveriesRouteImport.update({
   path: '/deliveries',
   getParentRoute: () => SellerRoute,
 } as any)
+const SellerDisputesRoute = SellerDisputesRouteImport.update({
+  id: '/disputes',
+  path: '/disputes',
+  getParentRoute: () => SellerRoute,
+} as any)
+const SellerHelpRoute = SellerHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => SellerRoute,
+} as any)
 const SellerNotificationsRoute = SellerNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -434,6 +446,8 @@ export interface FileRoutesByFullPath {
   '/seller/account': typeof SellerAccountRoute
   '/seller/customers': typeof SellerCustomersRoute
   '/seller/deliveries': typeof SellerDeliveriesRoute
+  '/seller/disputes': typeof SellerDisputesRoute
+  '/seller/help': typeof SellerHelpRoute
   '/seller/notifications': typeof SellerNotificationsRoute
   '/seller/protected-deal': typeof SellerProtectedDealRoute
   '/seller/safepay': typeof SellerSafepayRoute
@@ -496,6 +510,8 @@ export interface FileRoutesByTo {
   '/seller/account': typeof SellerAccountRoute
   '/seller/customers': typeof SellerCustomersRoute
   '/seller/deliveries': typeof SellerDeliveriesRoute
+  '/seller/disputes': typeof SellerDisputesRoute
+  '/seller/help': typeof SellerHelpRoute
   '/seller/notifications': typeof SellerNotificationsRoute
   '/seller/protected-deal': typeof SellerProtectedDealRoute
   '/seller/safepay': typeof SellerSafepayRoute
@@ -561,6 +577,8 @@ export interface FileRoutesById {
   '/seller/account': typeof SellerAccountRoute
   '/seller/customers': typeof SellerCustomersRoute
   '/seller/deliveries': typeof SellerDeliveriesRoute
+  '/seller/disputes': typeof SellerDisputesRoute
+  '/seller/help': typeof SellerHelpRoute
   '/seller/notifications': typeof SellerNotificationsRoute
   '/seller/protected-deal': typeof SellerProtectedDealRoute
   '/seller/safepay': typeof SellerSafepayRoute
@@ -627,6 +645,8 @@ export interface FileRouteTypes {
     | '/seller/account'
     | '/seller/customers'
     | '/seller/deliveries'
+    | '/seller/disputes'
+    | '/seller/help'
     | '/seller/notifications'
     | '/seller/protected-deal'
     | '/seller/safepay'
@@ -689,6 +709,8 @@ export interface FileRouteTypes {
     | '/seller/account'
     | '/seller/customers'
     | '/seller/deliveries'
+    | '/seller/disputes'
+    | '/seller/help'
     | '/seller/notifications'
     | '/seller/protected-deal'
     | '/seller/safepay'
@@ -753,6 +775,8 @@ export interface FileRouteTypes {
     | '/seller/account'
     | '/seller/customers'
     | '/seller/deliveries'
+    | '/seller/disputes'
+    | '/seller/help'
     | '/seller/notifications'
     | '/seller/protected-deal'
     | '/seller/safepay'
@@ -1179,6 +1203,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SellerDeliveriesRouteImport
       parentRoute: typeof SellerRoute
     }
+    '/seller/disputes': {
+      id: '/seller/disputes'
+      path: '/disputes'
+      fullPath: '/seller/disputes'
+      preLoaderRoute: typeof SellerDisputesRouteImport
+      parentRoute: typeof SellerRoute
+    }
+    '/seller/help': {
+      id: '/seller/help'
+      path: '/help'
+      fullPath: '/seller/help'
+      preLoaderRoute: typeof SellerHelpRouteImport
+      parentRoute: typeof SellerRoute
+    }
     '/seller/notifications': {
       id: '/seller/notifications'
       path: '/notifications'
@@ -1289,6 +1327,8 @@ interface SellerRouteChildren {
   SellerAccountRoute: typeof SellerAccountRoute
   SellerCustomersRoute: typeof SellerCustomersRoute
   SellerDeliveriesRoute: typeof SellerDeliveriesRoute
+  SellerDisputesRoute: typeof SellerDisputesRoute
+  SellerHelpRoute: typeof SellerHelpRoute
   SellerNotificationsRoute: typeof SellerNotificationsRoute
   SellerProtectedDealRoute: typeof SellerProtectedDealRoute
   SellerSafepayRoute: typeof SellerSafepayRoute
@@ -1302,6 +1342,8 @@ const SellerRouteChildren: SellerRouteChildren = {
   SellerAccountRoute: SellerAccountRoute,
   SellerCustomersRoute: SellerCustomersRoute,
   SellerDeliveriesRoute: SellerDeliveriesRoute,
+  SellerDisputesRoute: SellerDisputesRoute,
+  SellerHelpRoute: SellerHelpRoute,
   SellerNotificationsRoute: SellerNotificationsRoute,
   SellerProtectedDealRoute: SellerProtectedDealRoute,
   SellerSafepayRoute: SellerSafepayRoute,

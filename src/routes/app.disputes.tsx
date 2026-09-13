@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const REASONS = [
+const BUYER_REASONS = [
   { title: "Item not received", desc: "Seller hasn't delivered within agreed time" },
   { title: "Item not as described", desc: "Product differs from listing" },
   { title: "Damaged on arrival", desc: "Item arrived broken or defective" },
@@ -32,12 +32,37 @@ const REASONS = [
 
 export const Route = createFileRoute("/app/disputes")({
   head: () => ({ meta: [{ title: "Dispute Center — ZUNO" }] }),
-  component: Disputes,
+  component: BuyerDisputes,
 });
 
-function Disputes() {
-  const { data: disputes, isLoading } = useDisputes();
+function BuyerDisputes() {
   const { data: activeOrders } = useActiveTransactions();
+  const orderOptions = (activeOrders ?? []).map((t) => ({ id: t.id, label: `${t.item} · ${t.seller}` }));
+  return (
+    <Disputes
+      backTo="/app"
+      helpTo="/help"
+      orderOptions={orderOptions}
+      emptyOrdersLabel="No active orders to report"
+      reasons={BUYER_REASONS}
+    />
+  );
+}
+
+export function Disputes({
+  backTo,
+  helpTo,
+  orderOptions,
+  emptyOrdersLabel,
+  reasons,
+}: {
+  backTo: string;
+  helpTo: string;
+  orderOptions: { id: string; label: string }[];
+  emptyOrdersLabel: string;
+  reasons: { title: string; desc: string }[];
+}) {
+  const { data: disputes, isLoading } = useDisputes();
   const [openReason, setOpenReason] = useState<string | null>(null);
   const [transactionId, setTransactionId] = useState("");
   const [description, setDescription] = useState("");
@@ -68,7 +93,7 @@ function Disputes() {
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
-      <TopBar title="Dispute Center" back="/app" />
+      <TopBar title="Dispute Center" back={backTo} />
 
       <div className="px-5 pt-4 pb-8">
         <div className="rounded-3xl border border-destructive/30 bg-destructive/10 p-5">
@@ -85,7 +110,7 @@ function Disputes() {
 
         <p className="mt-6 text-xs font-bold tracking-[0.18em] text-muted-foreground">OPEN A DISPUTE</p>
         <div className="mt-3 space-y-3">
-          {REASONS.map((r) => (
+          {reasons.map((r) => (
             <Dialog key={r.title} open={openReason === r.title} onOpenChange={(open) => setOpenReason(open ? r.title : null)}>
               <DialogTrigger asChild>
                 <Card icon={FileText} title={r.title} desc={r.desc} />
@@ -101,11 +126,15 @@ function Disputes() {
                       <SelectValue placeholder="Select an order" />
                     </SelectTrigger>
                     <SelectContent>
-                      {(activeOrders ?? []).map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.item} · {t.seller}
-                        </SelectItem>
-                      ))}
+                      {orderOptions.length === 0 ? (
+                        <div className="px-3 py-2 text-xs text-muted-foreground">{emptyOrdersLabel}</div>
+                      ) : (
+                        orderOptions.map((o) => (
+                          <SelectItem key={o.id} value={o.id}>
+                            {o.label}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <textarea
@@ -165,7 +194,7 @@ function Disputes() {
                   >
                     <Upload className="h-3.5 w-3.5" /> Add evidence
                   </button>
-                  <Link to="/help" className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-gold text-xs font-semibold text-gold-foreground">
+                  <Link to={helpTo} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-gold text-xs font-semibold text-gold-foreground">
                     <MessageCircle className="h-3.5 w-3.5" /> Chat support
                   </Link>
                 </div>
