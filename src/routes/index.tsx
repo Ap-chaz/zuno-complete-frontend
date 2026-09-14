@@ -110,10 +110,19 @@ function Hero() {
             aria-hidden
             autoPlay
             muted
-            loop
             playsInline
             preload="auto"
             onError={() => setVideoFailed(true)}
+            onTimeUpdate={(e) => {
+              // Manually restart just before the true end, instead of relying
+              // on the native `loop` attribute — Chrome has a small decode
+              // hitch right at the native loop boundary; restarting slightly
+              // early (already-buffered) avoids that visible freeze.
+              const v = e.currentTarget;
+              if (v.duration && v.duration - v.currentTime < 0.2) {
+                v.currentTime = 0;
+              }
+            }}
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
             style={{ objectPosition: "50% 45%" }}
           >
