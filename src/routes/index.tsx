@@ -657,10 +657,6 @@ function ChapterProof() {
               <LedgerRow icon={ScrollText} label="Timestamped audit trail on every transaction" value="Always on" />
               <LedgerRow icon={RadioTower} label="TLS in transit · encrypted at rest" value="By default" />
               <LedgerRow icon={Scale} label="Disputes reviewed by a human, evidence-first" value="Not automatic" />
-              <LedgerRow label="Payment rails at launch — bank, card, mobile money" value="3" />
-              <LedgerRow label="Times ZUNO can move escrowed funds without both sides confirming" value="0" />
-              <LedgerRow label="Works from a plain link — no app required to start" value="Yes" />
-              <LedgerRow label="Target date for the ZUNO MVP launch" value="Dec 2026" />
             </div>
           </Reveal>
         </div>
