@@ -16,7 +16,7 @@ export function SafePayPage({ backTo = "/app", startHref = "/app/new-escrow" }: 
 
       <div className="px-5 pt-4 pb-8">
         <div className="overflow-hidden rounded-3xl border border-border/40 bg-gradient-card p-6 shadow-elevated">
-          <div className="mx-auto grid h-24 w-24 place-items-center overflow-hidden rounded-3xl bg-white p-3 ring-1 ring-gold/30 shadow-elevated">
+          <div className="mx-auto grid h-24 w-24 place-items-center">
             <img src={zunoLogo} alt="ZUNO" className="h-full w-full object-contain" />
           </div>
 
@@ -38,12 +38,6 @@ export function SafePayPage({ backTo = "/app", startHref = "/app/new-escrow" }: 
           <Connector />
           <Step n={4} icon={CheckCircle2} title="You confirm — funds released" desc="If something's wrong, open a dispute. Refunds are protected." gold />
         </ol>
-
-        <div className="mt-8 grid grid-cols-3 gap-3 text-center">
-          <Pill v="100%" label="Buyer protection" />
-          <Pill v="<24h" label="Dispute review" />
-          <Pill v="80k+" label="Verified users" />
-        </div>
 
         <Link
           to={startHref}
@@ -76,14 +70,5 @@ function Connector() {
     <li className="flex justify-center">
       <ArrowDown className="h-4 w-4 text-muted-foreground" />
     </li>
-  );
-}
-
-function Pill({ v, label }: { v: string; label: string }) {
-  return (
-    <div className="rounded-2xl border border-border/40 bg-surface p-3">
-      <p className="text-base font-bold text-gold">{v}</p>
-      <p className="mt-0.5 text-[10px] text-muted-foreground">{label}</p>
-    </div>
   );
 }
