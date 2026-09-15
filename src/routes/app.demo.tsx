@@ -80,7 +80,7 @@ function DemoPage() {
   }, [visible, typingFrom]);
 
   if (phase === "flow") {
-    return <NewEscrow key={flowKey} demo auto />;
+    return <NewEscrow key={flowKey} demo auto onRestart={restart} />;
   }
 
   return (

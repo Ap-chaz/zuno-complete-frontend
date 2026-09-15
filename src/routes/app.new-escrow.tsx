@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  ArrowLeft, ShieldCheck, Check, ChevronRight, FileText, Send, QrCode,
+  ArrowLeft, ShieldCheck, Check, ChevronRight, FileText, Send,
   Smartphone, CreditCard, Building2, Wallet, Clock, CheckCircle2, Circle,
   Copy, Sparkles,
 } from "lucide-react";
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/app/new-escrow")({
   ),
 });
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 type FormState = {
   product: string;
@@ -44,11 +44,29 @@ const initial: FormState = {
   agreed: false, payment: "",
 };
 
-function NewEscrow() {
+// Matches the scripted WhatsApp chat + amount used by the passive demo on
+// /app/demo (see app.demo.tsx) so the wizard picks up where the chat left off.
+const DEMO_AMOUNT = 191311;
+const demoInitial: FormState = {
+  product: "iPhone 17 Pro Max",
+  description: "Brand new, sealed, 256GB, Natural Titanium.",
+  sellerName: "Gadget World",
+  sellerContact: "+254 711 222 333",
+  amount: String(DEMO_AMOUNT),
+  timeline: "7 days",
+  category: "Electronics",
+  notes: "",
+  agreed: false,
+  payment: "",
+};
+
+export function NewEscrow({
+  demo = false, auto = false, onRestart,
+}: { demo?: boolean; auto?: boolean; onRestart?: () => void } = {}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(1);
-  const [form, setForm] = useState<FormState>(initial);
+  const [form, setForm] = useState<FormState>(demo ? demoInitial : initial);
   const [persistedId, setPersistedId] = useState<string | null>(null);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
@@ -59,10 +77,14 @@ function NewEscrow() {
   const total = amountNum + fee;
   const dealId = useMemo(() => "ZUNO" + Math.random().toString(36).slice(2, 12).toUpperCase(), []);
 
-  // Once escrow is funded (step 6), persist it as a real transaction so it
+  // Once escrow is funded (step 5), persist it as a real transaction so it
   // shows up in Activity/Home instead of disappearing once the wizard closes.
   useEffect(() => {
-    if (step !== 6 || persistedId) return;
+    if (step !== 5 || persistedId) return;
+    // Demo runs are watch-only — the chat already says nothing will be
+    // charged and no delivery will be created, so never write a real
+    // transaction to Activity/Home.
+    if (demo) return;
     transactionsService
       .create({
         item: form.product || "New item",
@@ -80,7 +102,30 @@ function NewEscrow() {
         // Non-fatal — the confirmation screen still shows the deal summary
         // even if persistence fails; the user can retry from Activity.
       });
-  }, [step, persistedId, form, amountNum, queryClient]);
+  }, [step, persistedId, form, amountNum, queryClient, demo]);
+
+  // Auto mode drives the wizard forward on its own timeline — no typing,
+  // no taps. Paced slowly enough to actually read each screen. Step 3
+  // advances itself once the seller "accepts" (passed down via the `auto`
+  // prop below); step 5 is the final screen, where we stop and hand control
+  // back to the viewer instead of auto-advancing any further.
+  useEffect(() => {
+    if (!auto) return;
+    if (step === 1) {
+      const t = setTimeout(() => setStep(2), 3200);
+      return () => clearTimeout(t);
+    }
+    if (step === 2) {
+      const t1 = setTimeout(() => set("agreed", true), 1800);
+      const t2 = setTimeout(() => setStep(3), 3400);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+    if (step === 4) {
+      const t1 = setTimeout(() => set("payment", "mpesa"), 1600);
+      const t2 = setTimeout(() => setStep(5), 3800);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+  }, [auto, step]);
 
   const back = () => {
     if (step === 1) navigate({ to: "/app" });
@@ -96,15 +141,14 @@ function NewEscrow() {
         </button>
         <div className="flex-1">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Step {step} of 6
+            Step {step} of 5
           </p>
           <h1 className="text-base font-bold">
             {step === 1 && "Create New Escrow"}
             {step === 2 && "Deal Contract"}
             {step === 3 && "Awaiting Seller"}
             {step === 4 && "Fund Escrow"}
-            {step === 5 && "QR Payment"}
-            {step === 6 && "Escrow Confirmed"}
+            {step === 5 && "Escrow Confirmed"}
           </h1>
         </div>
         <ThemeToggle />
@@ -115,7 +159,7 @@ function NewEscrow() {
         <div className="flex h-1.5 overflow-hidden rounded-full bg-surface">
           <div
             className="h-full rounded-full bg-gradient-to-r from-gold to-gold/70 transition-all"
-            style={{ width: `${(step / 6) * 100}%` }}
+            style={{ width: `${(step / 5) * 100}%` }}
           />
         </div>
       </div>
@@ -133,7 +177,7 @@ function NewEscrow() {
           onNext={() => setStep(3)}
         />
       )}
-      {step === 3 && <Step3 onNext={() => setStep(4)} />}
+      {step === 3 && <Step3 onNext={() => setStep(4)} auto={auto} />}
       {step === 4 && (
         <Step4
           form={form}
@@ -141,13 +185,18 @@ function NewEscrow() {
           total={total}
           amountNum={amountNum}
           onPick={(p) => set("payment", p)}
-          onNext={() => setStep(6)}
+          onNext={() => setStep(5)}
         />
       )}
       {step === 5 && (
-        <Step5 total={total} dealId={dealId} onDone={() => setStep(6)} />
+        <Step5
+          form={form}
+          amountNum={amountNum}
+          dealId={persistedId ?? dealId}
+          demo={demo}
+          onRestart={onRestart}
+        />
       )}
-      {step === 6 && <Step6 form={form} amountNum={amountNum} dealId={persistedId ?? dealId} />}
     </div>
   );
 }
@@ -229,12 +278,17 @@ function Step2({
 }
 
 /* ---------------- Step 3: Awaiting Seller ---------------- */
-function Step3({ onNext }: { onNext: () => void }) {
+function Step3({ onNext, auto }: { onNext: () => void; auto?: boolean }) {
   const [accepted, setAccepted] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setAccepted(true), 2200);
+    const t = setTimeout(() => setAccepted(true), 3600);
     return () => clearTimeout(t);
   }, []);
+  useEffect(() => {
+    if (!auto || !accepted) return;
+    const t = setTimeout(onNext, 2000);
+    return () => clearTimeout(t);
+  }, [auto, accepted, onNext]);
   return (
     <div className="px-5 pt-8">
       <div className="rounded-3xl border border-border/40 bg-surface p-6 text-center shadow-card">
@@ -318,105 +372,18 @@ function Step4({
       <TrustBanner text="Funds are locked in escrow the moment you pay. Seller never sees them until delivery is confirmed." />
 
       <PrimaryButton disabled={!form.payment} onClick={onNext}>
-        {form.payment === "qr" ? "Generate QR" : `Pay ${currency(total)}`}
+        Pay {currency(total)}
       </PrimaryButton>
     </div>
   );
 }
 
 /* ---------------- Step 5: QR Payment ---------------- */
-function Step5({ total, dealId, onDone }: { total: number; dealId: string; onDone: () => void }) {
-  const [phase, setPhase] = useState<0 | 1 | 2 | 3>(0);
-  const [seconds, setSeconds] = useState(180);
-
-  useEffect(() => {
-    const tick = setInterval(() => setSeconds((s) => Math.max(0, s - 1)), 1000);
-    const p1 = setTimeout(() => setPhase(1), 1800);
-    const p2 = setTimeout(() => setPhase(2), 3600);
-    const p3 = setTimeout(() => setPhase(3), 5200);
-    return () => { clearInterval(tick); clearTimeout(p1); clearTimeout(p2); clearTimeout(p3); };
-  }, []);
-
-  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
-  const ss = String(seconds % 60).padStart(2, "0");
-
-  if (phase === 3) {
-    return (
-      <div className="px-5 pt-8">
-        <div className="rounded-3xl border border-gold/30 bg-gold/5 p-6 text-center shadow-card">
-          <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-gold text-gold-foreground">
-            <Check className="h-10 w-10" />
-          </div>
-          <h2 className="mt-5 text-xl font-bold">Payment Successful</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Your funds are now securely protected in escrow.
-          </p>
-          <p className="mt-4 text-2xl font-bold text-gold">{currency(total)}</p>
-        </div>
-        <PrimaryButton onClick={onDone}>View Escrow</PrimaryButton>
-      </div>
-    );
-  }
-
-  const stages = [
-    { id: 0, label: "QR Generated" },
-    { id: 1, label: "Payment Initiated" },
-    { id: 2, label: "Payment Confirmed" },
-    { id: 3, label: "Escrow Funded" },
-  ];
-
-  return (
-    <div className="px-5 pt-5">
-      <div className="rounded-3xl border border-border/40 bg-surface p-5 text-center shadow-card">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Scan to Pay</p>
-        <p className="mt-1 text-2xl font-bold text-gold">{currency(total)}</p>
-
-        <div className="mx-auto mt-5 w-fit rounded-3xl bg-white p-4">
-          <QrArt />
-        </div>
-
-        <div className="mt-5 grid grid-cols-3 gap-2 text-left text-[11px]">
-          <Meta label="Deal ID" value={dealId.slice(0, 10) + "…"} />
-          <Meta label="Merchant" value="ZUNO" />
-          <Meta label="Expires" value={`${mm}:${ss}`} />
-        </div>
-
-        <p className="mt-5 text-[11px] text-muted-foreground">
-          Scan with your banking, M-Pesa, or QR-enabled wallet app.
-        </p>
-      </div>
-
-      <div className="mt-5 rounded-3xl border border-border/40 bg-surface p-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
-        <ul className="mt-3 space-y-3">
-          {stages.map((s) => {
-            const done = phase > s.id;
-            const active = phase === s.id;
-            return (
-              <li key={s.id} className="flex items-center gap-3">
-                {done ? (
-                  <CheckCircle2 className="h-5 w-5 text-gold" />
-                ) : active ? (
-                  <span className="grid h-5 w-5 place-items-center">
-                    <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-gold" />
-                  </span>
-                ) : (
-                  <Circle className="h-5 w-5 text-muted-foreground/50" />
-                )}
-                <span className={`text-sm ${done || active ? "font-semibold" : "text-muted-foreground"}`}>
-                  {s.label}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-/* ---------------- Step 6: Confirmation ---------------- */
-function Step6({ form, amountNum, dealId }: { form: FormState; amountNum: number; dealId: string }) {
+/* ---------------- Step 5: Confirmation ---------------- */
+function Step5({
+  form, amountNum, dealId, demo, onRestart,
+}: { form: FormState; amountNum: number; dealId: string; demo?: boolean; onRestart?: () => void }) {
+  const navigate = useNavigate();
   const tracker = [
     { label: "Create Deal", done: true },
     { label: "Contract Accepted", done: true },
@@ -464,19 +431,49 @@ function Step6({ form, amountNum, dealId }: { form: FormState; amountNum: number
         </ul>
       </div>
 
-      <Link
-        to="/app/tracking/$id"
-        params={{ id: dealId }}
-        className="mt-6 flex h-12 items-center justify-center gap-2 rounded-2xl bg-gold font-semibold text-gold-foreground shadow-card active:scale-[0.98]"
-      >
-        Track Deal <ChevronRight className="h-4 w-4" />
-      </Link>
-      <Link
-        to="/app"
-        className="mt-3 flex h-12 items-center justify-center rounded-2xl border border-border/40 bg-surface text-sm font-medium text-muted-foreground"
-      >
-        Back to Home
-      </Link>
+      {demo ? (
+        <div className="mt-6 space-y-3">
+          <div className="rounded-2xl border border-border/40 bg-surface px-4 py-3 text-center text-xs text-muted-foreground">
+            This was a demo — no real deal was created. What would you like to do next?
+          </div>
+          <button
+            onClick={() => navigate({ to: "/app/new-escrow" })}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gold font-semibold text-gold-foreground shadow-card active:scale-[0.98]"
+          >
+            Create a Real Escrow <ChevronRight className="h-4 w-4" />
+          </button>
+          {onRestart && (
+            <button
+              onClick={onRestart}
+              className="flex h-12 w-full items-center justify-center rounded-2xl border border-border/40 bg-surface text-sm font-medium text-muted-foreground active:scale-[0.98]"
+            >
+              Watch the Demo Again
+            </button>
+          )}
+          <button
+            onClick={() => navigate({ to: "/app" })}
+            className="flex h-12 w-full items-center justify-center rounded-2xl border border-border/40 bg-surface text-sm font-medium text-muted-foreground active:scale-[0.98]"
+          >
+            Back to Home
+          </button>
+        </div>
+      ) : (
+        <>
+          <Link
+            to="/app/tracking/$id"
+            params={{ id: dealId }}
+            className="mt-6 flex h-12 items-center justify-center gap-2 rounded-2xl bg-gold font-semibold text-gold-foreground shadow-card active:scale-[0.98]"
+          >
+            Track Deal <ChevronRight className="h-4 w-4" />
+          </Link>
+          <Link
+            to="/app"
+            className="mt-3 flex h-12 items-center justify-center rounded-2xl border border-border/40 bg-surface text-sm font-medium text-muted-foreground"
+          >
+            Back to Home
+          </Link>
+        </>
+      )}
     </div>
   );
 }
@@ -586,51 +583,6 @@ function ConfRow({ label, value, copy }: { label: string; value: string; copy?: 
           </button>
         )}
       </span>
-    </div>
-  );
-}
-
-function Meta({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-surface-2 px-2 py-1.5">
-      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-0.5 truncate text-[11px] font-semibold">{value}</p>
-    </div>
-  );
-}
-
-function QrArt() {
-  // Decorative pseudo-QR: 21x21 grid of squares
-  const size = 21;
-  const cells: boolean[] = [];
-  // deterministic pseudo-random
-  let s = 7;
-  for (let i = 0; i < size * size; i++) {
-    s = (s * 9301 + 49297) % 233280;
-    cells.push(s / 233280 > 0.5);
-  }
-  // finder patterns (corners)
-  const inFinder = (r: number, c: number) => {
-    const corners = [[0, 0], [0, size - 7], [size - 7, 0]];
-    return corners.some(([rr, cc]) => r >= rr && r < rr + 7 && c >= cc && c < cc + 7);
-  };
-  return (
-    <div
-      className="grid gap-[2px]"
-      style={{ gridTemplateColumns: `repeat(${size}, 8px)` }}
-    >
-      {Array.from({ length: size * size }).map((_, i) => {
-        const r = Math.floor(i / size); const c = i % size;
-        const finder = inFinder(r, c);
-        let fill = cells[i];
-        if (finder) {
-          const lr = r % 7, lc = c % 7;
-          const onEdge = lr === 0 || lr === 6 || lc === 0 || lc === 6;
-          const inner = lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4;
-          fill = onEdge || inner;
-        }
-        return <span key={i} className={`h-2 w-2 ${fill ? "bg-black" : "bg-white"}`} />;
-      })}
     </div>
   );
 }
