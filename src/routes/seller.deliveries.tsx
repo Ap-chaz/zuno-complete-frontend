@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
 import { EmptyState } from "@/components/common/StateViews";
 import { currency } from "@/lib/zuno-data";
+import zunoLogo from "@/assets/zuno-logo-new.png";
 import {
   Dialog,
   DialogContent,
@@ -156,7 +157,7 @@ function ReceiptView({ order }: { order: Order }) {
   const dateStr = new Date(order.placedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
   const handlePrint = () => {
-    const w = window.open("", "_blank", "width=420,height=700");
+    const w = window.open("", "_blank", "width=440,height=760");
     if (!w) {
       toast.error("Please allow pop-ups to download the receipt.");
       return;
@@ -165,28 +166,71 @@ function ReceiptView({ order }: { order: Order }) {
       <html>
         <head>
           <title>Receipt #${order.id}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+          <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
           <style>
-            body { font-family: -apple-system, Inter, sans-serif; padding: 32px; color: #141a29; }
-            h1 { font-size: 18px; margin: 0 0 4px; }
-            .muted { color: #6b7280; font-size: 12px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 24px; }
-            td { padding: 8px 0; font-size: 13px; border-bottom: 1px solid #eee; }
+            :root {
+              --gold-1: oklch(0.82 0.16 78);
+              --gold-2: oklch(0.7 0.18 60);
+              --gold-text: oklch(0.55 0.16 68);
+              --ink: #141a29;
+              --muted: #6b7280;
+            }
+            * { box-sizing: border-box; }
+            body {
+              font-family: "Plus Jakarta Sans", -apple-system, "Segoe UI", sans-serif;
+              margin: 0;
+              color: var(--ink);
+              background: #f4f5f7;
+            }
+            .sheet { max-width: 480px; margin: 0 auto; background: #fff; }
+            .banner {
+              padding: 28px 32px 22px;
+              background: linear-gradient(135deg, var(--gold-1), var(--gold-2));
+              color: #241a08;
+            }
+            .banner img { height: 30px; display: block; margin-bottom: 14px; }
+            .banner .title { font-size: 17px; font-weight: 800; margin: 0; }
+            .banner .sub { margin: 2px 0 0; font-size: 12px; opacity: 0.85; }
+            .body { padding: 28px 32px 32px; }
+            table { width: 100%; border-collapse: collapse; }
+            td { padding: 9px 0; font-size: 13px; border-bottom: 1px solid #eef0f3; }
             td:last-child { text-align: right; font-weight: 600; }
-            .total td { border-top: 2px solid #141a29; border-bottom: none; font-size: 16px; padding-top: 12px; }
-            .logo { color: #E8A23D; font-weight: 800; font-size: 20px; }
+            .total td { border-top: 2px solid var(--ink); border-bottom: none; font-size: 15px; padding-top: 14px; font-weight: 800; }
+            .badge {
+              margin-top: 22px; display: flex; align-items: center; gap: 8px;
+              background: color-mix(in oklch, var(--gold-2) 12%, white);
+              border: 1px solid color-mix(in oklch, var(--gold-2) 30%, white);
+              color: var(--gold-text);
+              border-radius: 12px; padding: 10px 12px; font-size: 12px; font-weight: 600;
+            }
+            .footer { margin-top: 28px; padding-top: 16px; border-top: 1px dashed #e5e7eb; font-size: 10px; color: #b3b8c2; text-align: center; }
+            @media print {
+              body { background: #fff; }
+              .sheet { max-width: none; }
+            }
           </style>
         </head>
         <body>
-          <div class="logo">ZUNO</div>
-          <h1>Payout Receipt</h1>
-          <p class="muted">#${order.id} · ${dateStr}</p>
-          <table>
-            <tr><td>Item</td><td>${order.item}</td></tr>
-            <tr><td>Buyer</td><td>${order.buyer}</td></tr>
-            <tr><td>Escrow amount</td><td>${currency(order.amount)}</td></tr>
-            <tr><td>ZUNO fee (seller share)</td><td>-${currency(sellerFee)}</td></tr>
-            <tr class="total"><td>Paid out to you</td><td>${currency(payout)}</td></tr>
-          </table>
+          <div class="sheet">
+            <div class="banner">
+              <img src="${zunoLogo}" alt="ZUNO" />
+              <p class="title">Payout Receipt</p>
+              <p class="sub">#${order.id} · ${dateStr}</p>
+            </div>
+            <div class="body">
+              <table>
+                <tr><td>Item</td><td>${order.item}</td></tr>
+                <tr><td>Buyer</td><td>${order.buyer}</td></tr>
+                <tr><td>Escrow amount</td><td>${currency(order.amount)}</td></tr>
+                <tr><td>ZUNO fee (seller share)</td><td>-${currency(sellerFee)}</td></tr>
+                <tr class="total"><td>Paid out to you</td><td>${currency(payout)}</td></tr>
+              </table>
+              <div class="badge">🛡️ Protected by ZUNO SafePay</div>
+              <p class="footer">ZUNO Pay · zuno.co.ke</p>
+            </div>
+          </div>
         </body>
       </html>
     `);

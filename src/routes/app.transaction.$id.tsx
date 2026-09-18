@@ -8,6 +8,7 @@ import { ErrorState, CardSkeleton } from "@/components/common/StateViews";
 import { useTransaction } from "@/hooks/queries/useTransactions";
 import { useSeller } from "@/hooks/queries/useSellers";
 import { formatCurrency, statusColorClass } from "@/services/transactions.service";
+import zunoLogo from "@/assets/zuno-logo-new.png";
 
 export const Route = createFileRoute("/app/transaction/$id")({
   head: ({ params }) => ({ meta: [{ title: `Receipt ${params.id} — ZUNO` }] }),
@@ -33,7 +34,91 @@ function TxDetail() {
   };
 
   const handleDownloadReceipt = () => {
-    toast.info("Receipt downloads are coming soon.");
+    if (!tx) return;
+    const escrowFee = Math.round(tx.amount * 0.015);
+    const w = window.open("", "_blank", "width=440,height=760");
+    if (!w) {
+      toast.error("Please allow pop-ups to download the receipt.");
+      return;
+    }
+    w.document.write(`
+      <html>
+        <head>
+          <title>Receipt #${tx.id}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+          <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+          <style>
+            :root {
+              --gold-1: oklch(0.82 0.16 78);
+              --gold-2: oklch(0.7 0.18 60);
+              --gold-text: oklch(0.55 0.16 68);
+              --ink: #141a29;
+              --muted: #6b7280;
+            }
+            * { box-sizing: border-box; }
+            body {
+              font-family: "Plus Jakarta Sans", -apple-system, "Segoe UI", sans-serif;
+              margin: 0;
+              color: var(--ink);
+              background: #f4f5f7;
+            }
+            .sheet { max-width: 480px; margin: 0 auto; background: #fff; }
+            .banner {
+              padding: 28px 32px 22px;
+              background: linear-gradient(135deg, var(--gold-1), var(--gold-2));
+              color: #241a08;
+            }
+            .banner img { height: 30px; display: block; margin-bottom: 14px; }
+            .banner .title { font-size: 17px; font-weight: 800; margin: 0; }
+            .banner .sub { margin: 2px 0 0; font-size: 12px; opacity: 0.85; }
+            .body { padding: 28px 32px 32px; }
+            table { width: 100%; border-collapse: collapse; }
+            td { padding: 9px 0; font-size: 13px; border-bottom: 1px solid #eef0f3; }
+            td:last-child { text-align: right; font-weight: 600; }
+            .total td { border-top: 2px solid var(--ink); border-bottom: none; font-size: 15px; padding-top: 14px; font-weight: 800; }
+            .badge {
+              margin-top: 22px; display: flex; align-items: center; gap: 8px;
+              background: color-mix(in oklch, var(--gold-2) 12%, white);
+              border: 1px solid color-mix(in oklch, var(--gold-2) 30%, white);
+              color: var(--gold-text);
+              border-radius: 12px; padding: 10px 12px; font-size: 12px; font-weight: 600;
+            }
+            .note { margin-top: 16px; font-size: 11px; color: #9ca3af; line-height: 1.6; }
+            .footer { margin-top: 28px; padding-top: 16px; border-top: 1px dashed #e5e7eb; font-size: 10px; color: #b3b8c2; text-align: center; }
+            @media print {
+              body { background: #fff; }
+              .sheet { max-width: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="sheet">
+            <div class="banner">
+              <img src="${zunoLogo}" alt="ZUNO" />
+              <p class="title">Payment Receipt</p>
+              <p class="sub">#${tx.id} · ${tx.date} · ${tx.status}</p>
+            </div>
+            <div class="body">
+              <table>
+                <tr><td>Item</td><td>${tx.item}</td></tr>
+                <tr><td>Category</td><td>${tx.category}</td></tr>
+                <tr><td>Seller</td><td>${tx.seller}</td></tr>
+                <tr><td>Payment method</td><td>M-PESA</td></tr>
+                <tr><td>Escrow fee</td><td>${formatCurrency(escrowFee)}</td></tr>
+                <tr class="total"><td>Total paid</td><td>${formatCurrency(tx.amount)}</td></tr>
+              </table>
+              <div class="badge">🛡️ Protected by ZUNO SafePay</div>
+              <p class="note">This is a receipt of payment into ZUNO escrow, not proof of delivery. Funds are released to the seller only after delivery is confirmed.</p>
+              <p class="footer">ZUNO Pay · zuno.co.ke</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    w.print();
   };
 
   if (isLoading) {
