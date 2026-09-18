@@ -153,7 +153,7 @@ function Hero() {
           style={{
             background: videoFailed
               ? undefined
-              : `linear-gradient(180deg, color-mix(in oklab, ${HERO_DARK_BG} 68%, transparent), color-mix(in oklab, ${HERO_DARK_BG} 55%, transparent) 45%, ${HERO_DARK_BG} 92%)`,
+              : `linear-gradient(180deg, color-mix(in oklab, ${HERO_DARK_BG} 58%, transparent), color-mix(in oklab, ${HERO_DARK_BG} 48%, transparent) 45%, ${HERO_DARK_BG} 92%)`,
             backgroundImage: videoFailed
               ? "radial-gradient(55% 45% at 50% 30%, color-mix(in oklab, var(--color-primary) 16%, transparent), transparent 70%)"
               : undefined,
