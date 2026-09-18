@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   ArrowRight,
   ShieldCheck,
@@ -90,6 +90,22 @@ const HERO_DARK_BG = "oklch(0.16 0.035 265)";
 
 function Hero() {
   const [videoFailed, setVideoFailed] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Guarantee the hero always opens on the same dark, early frame of the
+  // loop — never a mid-loop bright frame carried over from a previous
+  // mount/visit. `autoPlay` alone starts a *new* <video> element at 0, but
+  // this makes it explicit and also re-syncs if the browser ever restores
+  // the element (e.g. bfcache) mid-playback instead of freshly mounting it.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.currentTime = 0;
+    v.play().catch(() => {
+      // Autoplay can be blocked before the user has interacted with the
+      // page at all — harmless, the static dark background still shows.
+    });
+  }, []);
 
   return (
     <section className="relative overflow-hidden text-center">
@@ -107,6 +123,7 @@ function Hero() {
       >
         {!videoFailed && (
           <video
+            ref={videoRef}
             aria-hidden
             autoPlay
             muted
@@ -136,7 +153,7 @@ function Hero() {
           style={{
             background: videoFailed
               ? undefined
-              : `linear-gradient(180deg, color-mix(in oklab, ${HERO_DARK_BG} 55%, transparent), ${HERO_DARK_BG} 92%)`,
+              : `linear-gradient(180deg, color-mix(in oklab, ${HERO_DARK_BG} 68%, transparent), color-mix(in oklab, ${HERO_DARK_BG} 55%, transparent) 45%, ${HERO_DARK_BG} 92%)`,
             backgroundImage: videoFailed
               ? "radial-gradient(55% 45% at 50% 30%, color-mix(in oklab, var(--color-primary) 16%, transparent), transparent 70%)"
               : undefined,
