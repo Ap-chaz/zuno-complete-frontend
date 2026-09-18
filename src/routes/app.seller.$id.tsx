@@ -71,20 +71,29 @@ function SellerProfile() {
     links.website && { key: "website", label: "Website", url: links.website, icon: Globe },
   ].filter(Boolean) as Array<{ key: string; label: string; url: string; icon: typeof Instagram }>;
 
+  // If the count is odd, the trailing item spans both columns instead of
+  // floating alone on one side of the grid.
+  const lastIsOrphan = linkItems.length % 2 === 1;
+
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
       <TopBar title="Seller Profile" back="/app/sellers" />
 
-      {/* Cover */}
-      <div className={`relative h-32 bg-gradient-to-br ${seller.color}`}>
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-      </div>
-
-      {/* Logo + identity */}
-      <div className="px-5">
-        <div className="-mt-10 mb-4 grid h-20 w-20 place-items-center rounded-3xl border-4 border-background bg-gradient-violet text-2xl font-bold shadow-card">
+      {/* Cover + logo share one relative wrapper so the avatar's overlap is
+          always relative to the banner's own box, never to the page — same
+          pattern as the list card, just at profile scale. */}
+      <div className="relative">
+        <div className={`h-32 overflow-hidden bg-gradient-to-br ${seller.color}`}>
+          <div className="h-full w-full bg-gradient-to-t from-background/80 to-transparent" />
+        </div>
+        <div className="absolute -bottom-10 left-5 grid h-20 w-20 place-items-center rounded-3xl border-4 border-background bg-gradient-violet text-2xl font-bold shadow-card">
           {seller.initials}
         </div>
+      </div>
+
+      {/* Identity — pt-12 clears the avatar that now overlaps via absolute
+          positioning instead of a negative margin fighting the flow. */}
+      <div className="px-5 pt-12">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
@@ -127,26 +136,32 @@ function SellerProfile() {
         </div>
       </section>
 
-      {/* Business links */}
+      {/* Business links — CSS grid, 2 columns, trailing odd item spans full
+          width so links never float unevenly regardless of count. */}
       {linkItems.length > 0 && (
         <section className="mt-6 px-5">
           <p className="text-[11px] font-bold tracking-[0.18em] text-muted-foreground">BUSINESS LINKS</p>
-          <div className="mt-3 grid grid-cols-2 gap-2.5">
-            {linkItems.map((l) => (
-              <a
-                key={l.key}
-                href={l.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${seller.name} on ${l.label} (opens in a new tab)`}
-                className="flex items-center gap-2.5 rounded-2xl border border-border/60 bg-surface px-3 py-2.5 text-sm font-semibold transition-colors hover:border-gold/60"
-              >
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-gold/10 text-gold">
-                  <l.icon className="h-4 w-4" aria-hidden="true" />
-                </span>
-                {l.label}
-              </a>
-            ))}
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            {linkItems.map((l, i) => {
+              const isOrphan = lastIsOrphan && i === linkItems.length - 1;
+              return (
+                <a
+                  key={l.key}
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${seller.name} on ${l.label} (opens in a new tab)`}
+                  className={`flex items-center gap-2.5 rounded-2xl border border-border/60 bg-surface px-3 py-2.5 text-sm font-semibold transition-colors hover:border-gold/60 ${
+                    isOrphan ? "col-span-2" : ""
+                  }`}
+                >
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gold/10 text-gold">
+                    <l.icon className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  {l.label}
+                </a>
+              );
+            })}
           </div>
         </section>
       )}
@@ -185,7 +200,7 @@ function Stat({
   sub: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border/40 bg-surface p-3">
+    <div className="rounded-2xl border border-border/40 bg-surface p-4">
       <Icon className="h-4 w-4 text-gold" aria-hidden="true" />
       <p className="mt-2 text-lg font-bold leading-none">{value}</p>
       <p className="mt-1 text-[11px] font-semibold">{label}</p>

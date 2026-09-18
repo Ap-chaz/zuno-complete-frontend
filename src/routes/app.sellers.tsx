@@ -23,7 +23,10 @@ function Sellers() {
     <div className="flex flex-1 flex-col overflow-y-auto">
       <TopBar title="Verified Sellers" back="/app" />
 
-      <div className="px-5 pb-2 pt-4">
+      {/* Search + filters live in one header block with explicit vertical
+          rhythm (space-y-3) instead of relying on each row's own margin to
+          not collide with the next. */}
+      <div className="space-y-3 px-5 pb-3 pt-4">
         <label className="flex h-12 items-center gap-3 rounded-2xl border border-border/60 bg-input px-4 focus-within:border-gold/50">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
@@ -33,23 +36,28 @@ function Sellers() {
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </label>
+
+        {/* -mx-5/px-5 lets the row scroll edge-to-edge while the visible
+            pills still line up with the page gutter; py-1 gives focus
+            rings/shadows room so they don't get clipped by the scroller. */}
+        <div className="-mx-5 flex gap-2 overflow-x-auto px-5 py-1 hide-scrollbar">
+          {SELLER_CATEGORIES.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCat(c)}
+              className={`flex h-8 shrink-0 items-center rounded-full border px-4 text-xs font-semibold transition-colors ${
+                cat === c
+                  ? "border-gold bg-gold text-gold-foreground"
+                  : "border-border bg-surface text-muted-foreground"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-2 flex gap-2 overflow-x-auto px-5 pb-2 hide-scrollbar">
-        {SELLER_CATEGORIES.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCat(c)}
-            className={`flex h-8 shrink-0 items-center rounded-full border px-4 text-xs font-semibold transition-colors ${
-              cat === c ? "border-gold bg-gold text-gold-foreground" : "border-border bg-surface text-muted-foreground"
-            }`}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-4 space-y-3 px-5 pb-6">
+      <div className="space-y-3 px-5 pb-6">
         {isLoading && <ListSkeleton rows={3} />}
         {isError && <ErrorState description="Couldn't load sellers." onRetry={() => refetch()} />}
         {!isLoading && !isError && (filtered?.length ?? 0) === 0 && (
@@ -58,12 +66,20 @@ function Sellers() {
         {!isLoading &&
           !isError &&
           filtered?.map((s) => (
-            <article key={s.id} className="overflow-hidden rounded-3xl border border-border/40 bg-surface shadow-card">
-              <div className={`h-20 bg-gradient-to-br ${s.color}`} />
-              <div className="p-4 pt-0">
-                <div className="-mt-8 mb-3 grid h-16 w-16 place-items-center rounded-2xl border-4 border-surface bg-gradient-violet text-lg font-bold">
+            <article
+              key={s.id}
+              className="flex h-auto flex-col rounded-3xl border border-border/40 bg-surface shadow-card"
+            >
+              {/* Banner owns its own overflow-hidden/rounded-top context.
+                  The card itself never clips, so no fixed height or
+                  max-height anywhere can silently cut off content below it. */}
+              <div className={`h-20 shrink-0 overflow-hidden rounded-t-3xl bg-gradient-to-br ${s.color}`} />
+
+              <div className="flex flex-1 flex-col p-4 pt-0">
+                <div className="-mt-8 mb-3 grid h-16 w-16 shrink-0 place-items-center rounded-2xl border-4 border-surface bg-gradient-violet text-lg font-bold">
                   {s.initials}
                 </div>
+
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -80,14 +96,25 @@ function Sellers() {
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-3">
-                  <div className="flex gap-4 text-xs">
+                {/* mt-auto pins the footer to the bottom of the card instead
+                    of a fixed top offset, so "View seller", the rating, and
+                    the category tag never get pushed out of a clipped box —
+                    the card just grows to fit its content. */}
+                <div className="mt-auto flex items-center justify-between gap-2 border-t border-border/40 pt-3">
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span>
-                      <span className="font-bold text-foreground">{s.deals.toLocaleString()}</span> <span className="text-muted-foreground">deals</span>
+                      <span className="font-bold text-foreground">{s.deals.toLocaleString()}</span>{" "}
+                      <span className="text-muted-foreground">deals</span>
                     </span>
-                    <span className="rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-semibold text-gold">{s.category}</span>
+                    <span className="rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-semibold leading-4 text-gold">
+                      {s.category}
+                    </span>
                   </div>
-                  <Link to="/app/seller/$id" params={{ id: s.id }} className="flex items-center gap-1 text-xs font-semibold text-gold">
+                  <Link
+                    to="/app/seller/$id"
+                    params={{ id: s.id }}
+                    className="flex shrink-0 items-center gap-1 text-xs font-semibold text-gold"
+                  >
                     View seller <ChevronRight className="h-3 w-3" />
                   </Link>
                 </div>
