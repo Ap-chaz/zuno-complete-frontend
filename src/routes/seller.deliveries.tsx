@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Phone, Truck, CheckCircle2, Package, MapPin, Clock } from "lucide-react";
+import { Phone, Truck, CheckCircle2, Package, MapPin, Clock, Download, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
 import { EmptyState } from "@/components/common/StateViews";
 import { currency } from "@/lib/zuno-data";
-import zunoLogo from "@/assets/zuno-logo-new.png";
+import { downloadReceipt, shareReceipt, type ReceiptData } from "@/lib/receipt";
 import {
   Dialog,
   DialogContent,
@@ -21,17 +21,61 @@ export const Route = createFileRoute("/seller/deliveries")({
 
 const tabs = ["Waiting", "Active", "Completed"] as const;
 type Tab = (typeof tabs)[number];
-type Order = { item: string; buyer: string; id: string; amount: number; address: string; placedAt: string };
+type Order = {
+  item: string;
+  buyer: string;
+  id: string;
+  amount: number;
+  address: string;
+  placedAt: string;
+};
 
 const INITIAL_ORDERS: Record<Tab, Order[]> = {
   Waiting: [
-    { item: "iPhone 17 Pro Max", buyer: "Alvan Mwangi", id: "ZUNOAXFVLO4Y8Y", amount: 191311, address: "Kilimani, Nairobi", placedAt: "2026-09-11T09:20:00.000Z" },
-    { item: "AirPods Pro 3", buyer: "Brenda Kerubo", id: "ZUNO22HJ8K9L0M", amount: 32500, address: "Westlands, Nairobi", placedAt: "2026-09-12T14:05:00.000Z" },
+    {
+      item: "iPhone 17 Pro Max",
+      buyer: "Alvan Mwangi",
+      id: "ZUNOAXFVLO4Y8Y",
+      amount: 191311,
+      address: "Kilimani, Nairobi",
+      placedAt: "2026-09-11T09:20:00.000Z",
+    },
+    {
+      item: "AirPods Pro 3",
+      buyer: "Brenda Kerubo",
+      id: "ZUNO22HJ8K9L0M",
+      amount: 32500,
+      address: "Westlands, Nairobi",
+      placedAt: "2026-09-12T14:05:00.000Z",
+    },
   ],
-  Active: [{ item: "MacBook Air M4", buyer: "James Otieno", id: "ZUNO9KLP2M3N4Q", amount: 168000, address: "Ruaka, Kiambu", placedAt: "2026-09-08T11:40:00.000Z" }],
+  Active: [
+    {
+      item: "MacBook Air M4",
+      buyer: "James Otieno",
+      id: "ZUNO9KLP2M3N4Q",
+      amount: 168000,
+      address: "Ruaka, Kiambu",
+      placedAt: "2026-09-08T11:40:00.000Z",
+    },
+  ],
   Completed: [
-    { item: "Sony WH-1000XM6", buyer: "Mary Wanjiru", id: "ZUNO7HG6FD5SA1", amount: 45900, address: "Karen, Nairobi", placedAt: "2026-08-30T16:15:00.000Z" },
-    { item: "Apple Watch Ultra", buyer: "Peter Kim", id: "ZUNO5UI6OP7AS8", amount: 89000, address: "Lavington, Nairobi", placedAt: "2026-08-27T10:00:00.000Z" },
+    {
+      item: "Sony WH-1000XM6",
+      buyer: "Mary Wanjiru",
+      id: "ZUNO7HG6FD5SA1",
+      amount: 45900,
+      address: "Karen, Nairobi",
+      placedAt: "2026-08-30T16:15:00.000Z",
+    },
+    {
+      item: "Apple Watch Ultra",
+      buyer: "Peter Kim",
+      id: "ZUNO5UI6OP7AS8",
+      amount: 89000,
+      address: "Lavington, Nairobi",
+      placedAt: "2026-08-27T10:00:00.000Z",
+    },
   ],
 };
 
@@ -70,29 +114,60 @@ function Deliveries() {
 
       <div className="mt-4 px-5 pb-8">
         {orders[tab].length === 0 ? (
-          <EmptyState icon={Package} title={`No ${tab.toLowerCase()} orders`} description="Orders will appear here as buyers place them." />
+          <EmptyState
+            icon={Package}
+            title={`No ${tab.toLowerCase()} orders`}
+            description="Orders will appear here as buyers place them."
+          />
         ) : (
           <ul className="space-y-3">
             {orders[tab].map((o) => (
               <li key={o.id} className="rounded-3xl border border-border/40 bg-surface p-4">
                 <div className="flex items-start gap-3">
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-2 text-xl">📦</span>
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-2 text-xl">
+                    📦
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{o.item}</p>
                     <p className="truncate text-xs text-muted-foreground">Buyer: {o.buyer}</p>
-                    <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">#{o.id}</p>
+                    <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
+                      #{o.id}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-2">
-                  <Action icon={Phone} label="Call" onClick={() => toast.info("Buyer calling is coming soon.")} />
+                  <Action
+                    icon={Phone}
+                    label="Call"
+                    onClick={() => toast.info("Buyer calling is coming soon.")}
+                  />
                   {tab === "Waiting" && (
-                    <Action icon={Truck} label="Mark shipped" gold onClick={() => moveOrder(o, "Waiting", "Active", `${o.item} marked as shipped.`)} />
+                    <Action
+                      icon={Truck}
+                      label="Mark shipped"
+                      gold
+                      onClick={() =>
+                        moveOrder(o, "Waiting", "Active", `${o.item} marked as shipped.`)
+                      }
+                    />
                   )}
                   {tab === "Active" && (
-                    <Action icon={CheckCircle2} label="Delivered" gold onClick={() => moveOrder(o, "Active", "Completed", `${o.item} marked as delivered.`)} />
+                    <Action
+                      icon={CheckCircle2}
+                      label="Delivered"
+                      gold
+                      onClick={() =>
+                        moveOrder(o, "Active", "Completed", `${o.item} marked as delivered.`)
+                      }
+                    />
                   )}
                   {tab === "Completed" && (
-                    <Action icon={Package} label="Receipt" gold onClick={() => setReceiptOrder(o)} />
+                    <Action
+                      icon={Package}
+                      label="Receipt"
+                      gold
+                      onClick={() => setReceiptOrder(o)}
+                    />
                   )}
                   <Action icon={Package} label="Details" onClick={() => setDetailsOrder(o)} />
                 </div>
@@ -108,14 +183,17 @@ function Deliveries() {
             <>
               <DialogHeader>
                 <DialogTitle>{detailsOrder.item}</DialogTitle>
-                <DialogDescription className="font-mono text-xs">#{detailsOrder.id}</DialogDescription>
+                <DialogDescription className="font-mono text-xs">
+                  #{detailsOrder.id}
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-3">
                 <div className="rounded-2xl border border-border/40 bg-surface-2 p-4">
                   <p className="text-xs text-muted-foreground">Escrow amount</p>
                   <p className="mt-1 text-2xl font-bold">{currency(detailsOrder.amount)}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Held safely until the buyer confirms delivery — released to you the moment they do.
+                    Held safely until the buyer confirms delivery — released to you the moment they
+                    do.
                   </p>
                 </div>
                 <Detail icon={Package} label="Buyer" value={detailsOrder.buyer} />
@@ -138,9 +216,7 @@ function Deliveries() {
       </Dialog>
 
       <Dialog open={receiptOrder !== null} onOpenChange={(open) => !open && setReceiptOrder(null)}>
-        <DialogContent>
-          {receiptOrder && <ReceiptView order={receiptOrder} />}
-        </DialogContent>
+        <DialogContent>{receiptOrder && <ReceiptView order={receiptOrder} />}</DialogContent>
       </Dialog>
     </div>
   );
@@ -154,118 +230,103 @@ function ReceiptView({ order }: { order: Order }) {
   const totalFee = Math.round(order.amount * feePct);
   const sellerFee = Math.round(totalFee / 2);
   const payout = order.amount - sellerFee;
-  const dateStr = new Date(order.placedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const dateStr = new Date(order.placedAt).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const [isBusy, setIsBusy] = useState<"download" | "share" | null>(null);
 
-  const handlePrint = () => {
-    const w = window.open("", "_blank", "width=440,height=760");
-    if (!w) {
-      toast.error("Please allow pop-ups to download the receipt.");
-      return;
-    }
-    w.document.write(`
-      <html>
-        <head>
-          <title>Receipt #${order.id}</title>
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-          <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-          <style>
-            :root {
-              --gold-1: oklch(0.82 0.16 78);
-              --gold-2: oklch(0.7 0.18 60);
-              --gold-text: oklch(0.55 0.16 68);
-              --ink: #141a29;
-              --muted: #6b7280;
-            }
-            * { box-sizing: border-box; }
-            body {
-              font-family: "Plus Jakarta Sans", -apple-system, "Segoe UI", sans-serif;
-              margin: 0;
-              color: var(--ink);
-              background: #f4f5f7;
-            }
-            .sheet { max-width: 480px; margin: 0 auto; background: #fff; }
-            .banner {
-              padding: 28px 32px 22px;
-              background: linear-gradient(135deg, var(--gold-1), var(--gold-2));
-              color: #241a08;
-            }
-            .banner img { height: 30px; display: block; margin-bottom: 14px; }
-            .banner .title { font-size: 17px; font-weight: 800; margin: 0; }
-            .banner .sub { margin: 2px 0 0; font-size: 12px; opacity: 0.85; }
-            .body { padding: 28px 32px 32px; }
-            table { width: 100%; border-collapse: collapse; }
-            td { padding: 9px 0; font-size: 13px; border-bottom: 1px solid #eef0f3; }
-            td:last-child { text-align: right; font-weight: 600; }
-            .total td { border-top: 2px solid var(--ink); border-bottom: none; font-size: 15px; padding-top: 14px; font-weight: 800; }
-            .badge {
-              margin-top: 22px; display: flex; align-items: center; gap: 8px;
-              background: color-mix(in oklch, var(--gold-2) 12%, white);
-              border: 1px solid color-mix(in oklch, var(--gold-2) 30%, white);
-              color: var(--gold-text);
-              border-radius: 12px; padding: 10px 12px; font-size: 12px; font-weight: 600;
-            }
-            .footer { margin-top: 28px; padding-top: 16px; border-top: 1px dashed #e5e7eb; font-size: 10px; color: #b3b8c2; text-align: center; }
-            @media print {
-              body { background: #fff; }
-              .sheet { max-width: none; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="sheet">
-            <div class="banner">
-              <img src="${zunoLogo}" alt="ZUNO" />
-              <p class="title">Payout Receipt</p>
-              <p class="sub">#${order.id} · ${dateStr}</p>
-            </div>
-            <div class="body">
-              <table>
-                <tr><td>Item</td><td>${order.item}</td></tr>
-                <tr><td>Buyer</td><td>${order.buyer}</td></tr>
-                <tr><td>Escrow amount</td><td>${currency(order.amount)}</td></tr>
-                <tr><td>ZUNO fee (seller share)</td><td>-${currency(sellerFee)}</td></tr>
-                <tr class="total"><td>Paid out to you</td><td>${currency(payout)}</td></tr>
-              </table>
-              <div class="badge">🛡️ Protected by ZUNO SafePay</div>
-              <p class="footer">ZUNO Pay · zuno.co.ke</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `);
-    w.document.close();
-    w.focus();
-    w.print();
+  const buildData = (): ReceiptData => ({
+    id: order.id,
+    kind: "payout",
+    dateLabel: dateStr,
+    rows: [
+      { label: "Date", value: dateStr },
+      { label: "Buyer", value: order.buyer },
+      { label: "Item", value: order.item },
+      { label: "Escrow amount", value: currency(order.amount) },
+      { label: "ZUNO fee (your share)", value: `-${currency(sellerFee)}` },
+    ],
+    totalLabel: "Paid out to you",
+    totalValue: currency(payout),
+  });
+
+  const handleDownload = async () => {
+    if (isBusy) return;
+    setIsBusy("download");
+    await downloadReceipt(buildData());
+    setIsBusy(null);
+  };
+
+  const handleShare = async () => {
+    if (isBusy) return;
+    setIsBusy("share");
+    await shareReceipt(buildData());
+    setIsBusy(null);
   };
 
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Receipt</DialogTitle>
-        <DialogDescription className="font-mono text-xs">#{order.id}</DialogDescription>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <DialogTitle>Receipt</DialogTitle>
+            <DialogDescription className="font-mono text-xs">#{order.id}</DialogDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleShare}
+              disabled={isBusy !== null}
+              aria-label="Share receipt"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-surface-2 text-foreground transition-colors hover:bg-surface disabled:opacity-50"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={handleDownload}
+              disabled={isBusy !== null}
+              aria-label="Download receipt"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-surface-2 text-foreground transition-colors hover:bg-surface disabled:opacity-50"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       </DialogHeader>
       <div className="space-y-3">
         <div className="rounded-2xl border border-border/40 bg-surface-2 p-4">
           <p className="text-xs text-muted-foreground">Paid out to you</p>
           <p className="mt-1 text-2xl font-bold">{currency(order.amount - sellerFee)}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{order.item} · {dateStr}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {order.item} · {dateStr}
+          </p>
         </div>
         <Detail icon={Package} label="Escrow amount" value={currency(order.amount)} />
         <Detail icon={Package} label="ZUNO fee (your share)" value={`-${currency(sellerFee)}`} />
         <Detail icon={Package} label="Buyer" value={order.buyer} />
         <button
-          onClick={handlePrint}
-          className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold"
+          onClick={handleDownload}
+          disabled={isBusy !== null}
+          className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold disabled:opacity-60"
         >
-          <Package className="h-4 w-4" /> Save as PDF
+          <Download className="h-4 w-4" />{" "}
+          {isBusy === "download" ? "Preparing receipt…" : "Download receipt (PDF)"}
         </button>
       </div>
     </>
   );
 }
 
-function Detail({ icon: Icon, label, value }: { icon: typeof Package; label: string; value: string }) {
+function Detail({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Package;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border/40 px-3 py-2.5">
       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted-foreground">
@@ -279,12 +340,24 @@ function Detail({ icon: Icon, label, value }: { icon: typeof Package; label: str
   );
 }
 
-function Action({ icon: Icon, label, gold, onClick }: { icon: typeof Phone; label: string; gold?: boolean; onClick?: () => void }) {
+function Action({
+  icon: Icon,
+  label,
+  gold,
+  onClick,
+}: {
+  icon: typeof Phone;
+  label: string;
+  gold?: boolean;
+  onClick?: () => void;
+}) {
   return (
     <button
       onClick={onClick}
       className={`flex h-10 items-center justify-center gap-1.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90 ${
-        gold ? "bg-gradient-gold text-gold-foreground" : "border border-border bg-surface-2 text-foreground"
+        gold
+          ? "bg-gradient-gold text-gold-foreground"
+          : "border border-border bg-surface-2 text-foreground"
       }`}
     >
       <Icon className="h-3.5 w-3.5" /> {label}
