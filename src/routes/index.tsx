@@ -221,7 +221,7 @@ function RailsMarquee() {
     { label: "Human dispute review", img: "/marquee/human-dispute-review.png" },
     { label: "Timestamped audit trail", img: "/marquee/timestamped-audit-trail.png" },
     { label: "Seller verification tiers", img: "/marquee/seller-verification-tiers.png" },
-    { label: "WhatsApp-linked deals", img: "/marquee/whatsapp-linked-deals.png" },
+    { label: "Deals that start on WhatsApp", img: "/marquee/whatsapp-linked-deals.png" },
   ];
   const loop = [...items, ...items];
 
@@ -402,7 +402,7 @@ function ChapterSolution() {
               </div>
               <h3 className="mt-6 text-[20px] font-semibold">I'm selling</h3>
               <p className="mt-3 text-white/70">
-                Send a ZUNO link instead of your bank details. Buyers pay because the money is
+                Start the deal on ZUNO instead of sharing your bank details. Buyers pay because the money is
                 protected — you ship confidently, knowing the payout is already secured.
               </p>
               <Link
@@ -578,8 +578,8 @@ function ChapterFeatures() {
     },
     {
       label: "Privacy",
-      title: "One link, no bank details shared.",
-      body: "Send a ZUNO link instead of your account number. Neither side ever needs the other's banking information to close the deal.",
+      title: "No bank details shared.",
+      body: "Start the deal on ZUNO instead of sending your account number. Neither side ever needs the other's banking information to close the deal.",
     },
     {
       label: "Timing",

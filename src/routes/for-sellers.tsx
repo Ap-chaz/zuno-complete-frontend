@@ -13,7 +13,7 @@ export const Route = createFileRoute("/for-sellers")({
       {
         name: "description",
         content:
-          "Sellers lose 40% of buyers to distrust. Send a ZUNO link instead of your bank details and close deals from strangers.",
+          "Sellers lose 40% of buyers to distrust. Start the deal on ZUNO instead of sharing your bank details, and close deals from strangers.",
       },
       { property: "og:title", content: "ZUNO for sellers — win the buyers who wouldn't have paid you" },
       { property: "og:description", content: "You ship, the buyer confirms, ZUNO pays you. Guaranteed on release." },
@@ -33,8 +33,8 @@ function ForSellers() {
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-body-lg text-muted-foreground">
             You already know how many chats end in “ok let me think about it” after you ask for
-            payment upfront. Send a ZUNO payment link instead — buyers pay because the money is
-            protected, and you get it on release, guaranteed.
+            payment upfront. Start the deal on ZUNO instead — buyers pay into escrow because the
+            money is protected, and you get it on release, guaranteed.
           </p>
           <div className="mt-8 flex justify-center">
             <Link
@@ -77,7 +77,7 @@ function ForSellers() {
           <div className="grid gap-8 md:grid-cols-3">
             <Card icon={TrendingUp} k="Close deals from strangers" v="Buyers who'd otherwise walk away pay comfortably because their money is protected — not because they trust you yet." />
             <Card icon={HandCoins} k="Guaranteed payout on release" v="Once the buyer confirms (or the auto-release window ends), ZUNO settles to your account within seconds." />
-            <Card icon={Rocket} k="No app needed for the buyer" v="Share a ZUNO link over chat, social, or a marketplace listing. The buyer pays via a simple web page — no download." />
+            <Card icon={Rocket} k="No new sales channel needed" v="Keep chatting with buyers on WhatsApp, Instagram, or a marketplace listing — just start the deal on ZUNO once they're ready to pay." />
           </div>
         </div>
       </section>

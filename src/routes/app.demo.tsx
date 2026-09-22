@@ -13,8 +13,7 @@ const AMOUNT = 191311;
 
 type Msg =
   | { from: "buyer"; kind: "image"; text: string }
-  | { from: "buyer" | "seller"; kind: "text"; text: string }
-  | { from: "buyer"; kind: "link"; text: string; url: string };
+  | { from: "buyer" | "seller"; kind: "text"; text: string };
 
 const SCRIPT: Msg[] = [
   { from: "buyer", kind: "image", text: "Hi 👋 Do you have the iPhone 17 Pro Max in stock?" },
@@ -23,7 +22,7 @@ const SCRIPT: Msg[] = [
   { from: "buyer", kind: "text", text: "How much?" },
   { from: "seller", kind: "text", text: `${currency(AMOUNT)}.` },
   { from: "seller", kind: "text", text: "We can send it today." },
-  { from: "buyer", kind: "link", text: "My ZUNO Pay link", url: "zuno.app/pay/gadget-world" },
+  { from: "buyer", kind: "text", text: "Great, let's do it through ZUNO so we're both covered 👍" },
 ];
 
 type Phase = "chat" | "flow";
@@ -135,7 +134,9 @@ function DemoPage() {
               )}
 
               {visible >= SCRIPT.length && (
-                <p className="pt-2 text-center text-[11px] text-white/40">Opening the payment link…</p>
+                <p className="flex items-center justify-center gap-1.5 pt-2 text-center text-[11px] text-white/40">
+                  <ShieldCheck className="h-3 w-3" /> Opening ZUNO to start the escrow…
+                </p>
               )}
             </div>
           </div>
@@ -167,19 +168,7 @@ function Bubble({ msg }: { msg: Msg }) {
             <div className="flex h-28 items-center justify-center text-3xl">📱</div>
           </div>
         )}
-        {msg.kind === "link" ? (
-          <div className="flex items-center gap-2 text-left">
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gold/20 text-gold">
-              <ShieldCheck className="h-4 w-4" />
-            </span>
-            <span>
-              <span className="block font-medium">{msg.text}</span>
-              <span className="block text-[11px] text-gold underline">{msg.url}</span>
-            </span>
-          </div>
-        ) : (
-          <p>{msg.text}</p>
-        )}
+        <p>{msg.text}</p>
         <span className="mt-1 flex items-center justify-end gap-1 text-[10px] text-white/50">
           10:27 {mine && <CheckCheck className="h-3 w-3 text-sky-300" />}
         </span>
