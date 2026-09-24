@@ -21,7 +21,7 @@ export function SellerKycBanner() {
 
   if (status === "pending") {
     return (
-      <div className="mx-5 mt-5 flex items-center gap-3 rounded-3xl border border-gold/30 bg-gold/5 p-4 lg:mx-0">
+      <div className="mx-5 mt-4 flex items-center gap-3 rounded-2xl border border-gold/30 bg-gold/5 p-3 sm:p-4 lg:mx-0">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gold/15 text-gold">
           <Clock className="h-5 w-5" />
         </span>
@@ -34,24 +34,22 @@ export function SellerKycBanner() {
   }
 
   return (
-    <div className="mx-5 mt-5 rounded-3xl border border-gold/40 bg-gold/5 p-4 lg:mx-0">
-      <div className="flex items-start gap-3">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gold/15 text-gold">
-          <ShieldCheck className="h-5 w-5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold">Verify your identity to get paid</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            You can look around now, but you'll need to verify before marking orders shipped or receiving payouts.
-          </p>
-        </div>
+    <div className="mx-5 mt-4 flex items-center gap-3 rounded-2xl border border-gold/40 bg-gold/5 p-3 sm:p-4 lg:mx-0">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold sm:h-11 sm:w-11 sm:rounded-2xl">
+        <ShieldCheck className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold leading-snug">Verify your identity to get paid</p>
+        <p className="mt-0.5 hidden text-xs text-muted-foreground sm:block">
+          You can look around now, but you'll need to verify before marking orders shipped or receiving payouts.
+        </p>
       </div>
       <Link
         to="/auth/kyc"
         search={{ redirect: "/seller" } as never}
-        className="mt-3 flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold transition-opacity hover:opacity-95 lg:w-auto lg:px-8"
+        className="flex h-9 shrink-0 items-center justify-center rounded-xl bg-gradient-gold px-4 text-xs font-semibold text-gold-foreground shadow-gold transition-opacity hover:opacity-95 sm:h-10 sm:px-6 sm:text-sm"
       >
-        Verify now
+        Verify
       </Link>
     </div>
   );
