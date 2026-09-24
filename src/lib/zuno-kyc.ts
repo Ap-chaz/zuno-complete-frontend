@@ -7,16 +7,55 @@ export type KycStatus = "unverified" | "pending" | "verified";
 const STATUS_KEY = "zuno_kyc_status";
 const DRAFT_KEY = "zuno_kyc_draft";
 const INTENT_KEY = "zuno_kyc_intent";
+const PROMPT_SEEN_KEY = "zuno_kyc_prompt_seen";
 
 function safeWindow(): Window | null {
   return typeof window === "undefined" ? null : window;
+}
+
+/**
+ * KYC belongs to a person, not to a browser. Every key is namespaced by the
+ * signed-in user's id (read from the stored session) so a second account on
+ * the same device starts unverified instead of inheriting the first one's status.
+ */
+function currentUserId(): string {
+  const w = safeWindow();
+  if (!w) return "anon";
+  try {
+    const raw = w.localStorage.getItem("zuno_auth_user");
+    const id = raw ? (JSON.parse(raw) as { id?: string }).id : undefined;
+    return id || "anon";
+  } catch {
+    return "anon";
+  }
+}
+
+const scoped = (key: string) => `${key}:${currentUserId()}`;
+
+/** True once this user has already been shown the "verify to get paid" welcome prompt. */
+export function hasSeenKycPrompt(): boolean {
+  const w = safeWindow();
+  if (!w) return true;
+  try {
+    return w.localStorage.getItem(scoped(PROMPT_SEEN_KEY)) === "1";
+  } catch {
+    return true;
+  }
+}
+
+export function markKycPromptSeen() {
+  const w = safeWindow();
+  if (!w) return;
+  try {
+    w.localStorage.setItem(scoped(PROMPT_SEEN_KEY), "1");
+  } catch {}
 }
 
 export function getKycStatus(): KycStatus {
   const w = safeWindow();
   if (!w) return "unverified";
   try {
-    const v = w.localStorage.getItem(STATUS_KEY);
+    const v = w.localStorage.getItem(scoped(STATUS_KEY));
     return v === "verified" || v === "pending" ? v : "unverified";
   } catch {
     return "unverified";
@@ -31,9 +70,9 @@ export function setKycStatus(status: KycStatus) {
   const w = safeWindow();
   if (!w) return;
   try {
-    w.localStorage.setItem(STATUS_KEY, status);
+    w.localStorage.setItem(scoped(STATUS_KEY), status);
     // Draft no longer needed once verified.
-    if (status === "verified") w.sessionStorage.removeItem(DRAFT_KEY);
+    if (status === "verified") w.sessionStorage.removeItem(scoped(DRAFT_KEY));
   } catch {}
 }
 
@@ -41,7 +80,7 @@ export function saveKycDraft(data: unknown) {
   const w = safeWindow();
   if (!w) return;
   try {
-    w.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+    w.sessionStorage.setItem(scoped(DRAFT_KEY), JSON.stringify(data));
   } catch {}
 }
 
@@ -49,7 +88,7 @@ export function loadKycDraft<T = unknown>(): T | null {
   const w = safeWindow();
   if (!w) return null;
   try {
-    const v = w.sessionStorage.getItem(DRAFT_KEY);
+    const v = w.sessionStorage.getItem(scoped(DRAFT_KEY));
     return v ? (JSON.parse(v) as T) : null;
   } catch {
     return null;

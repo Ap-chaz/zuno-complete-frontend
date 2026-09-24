@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { Logo } from "@/components/zuno/Logo";
 import { ThemeToggle } from "@/components/zuno/ThemeToggle";
+import { SellerKycBanner, SellerKycWelcome } from "@/components/zuno/SellerKyc";
 import { useAuth } from "@/hooks/useAuth";
 import { getAvatarInitial, getFirstName } from "@/lib/user-display";
 import { currency } from "@/lib/zuno-data";
@@ -76,6 +77,8 @@ function SellerHeader({ subtitle }: { subtitle: string }) {
       <p className="mt-5 px-5 text-sm text-muted-foreground lg:hidden">
         {timeOfDayGreeting()}, {firstName} 👋
       </p>
+      <SellerKycBanner />
+      <SellerKycWelcome />
     </>
   );
 }

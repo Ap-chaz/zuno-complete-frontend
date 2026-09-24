@@ -14,6 +14,8 @@ import { TopBar } from "@/components/zuno/TopBar";
 import { ReceiptSheet } from "@/components/zuno/ReceiptSheet";
 import { EmptyState } from "@/components/common/StateViews";
 import { currency } from "@/lib/zuno-data";
+import { KycRequiredDialog } from "@/components/zuno/KycRequiredDialog";
+import { isKycVerified } from "@/lib/zuno-kyc";
 import type { ReceiptData } from "@/lib/receipt";
 import {
   Dialog,
@@ -94,7 +96,14 @@ function Deliveries() {
   const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
 
+  const [kycOpen, setKycOpen] = useState(false);
+
   const moveOrder = (order: Order, from: Tab, to: Tab, message: string) => {
+    // Shipping and delivery confirmations release money — identity must be verified first.
+    if (!isKycVerified()) {
+      setKycOpen(true);
+      return;
+    }
     setOrders((prev) => ({
       ...prev,
       [from]: prev[from].filter((o) => o.id !== order.id),
@@ -223,6 +232,13 @@ function Deliveries() {
           )}
         </DialogContent>
       </Dialog>
+
+      <KycRequiredDialog
+        open={kycOpen}
+        onOpenChange={setKycOpen}
+        title="Verify your identity to continue"
+        description="Sellers must complete identity verification (KYC) before shipping orders or receiving payouts. It only takes a few minutes and you only do it once."
+      />
 
       {receiptOrder && (
         <ReceiptSheet data={buildReceiptData(receiptOrder)} onClose={() => setReceiptOrder(null)} />

@@ -86,6 +86,12 @@ function nameFromIdentifier(identifier: string): string {
   return words ? words.replace(/\b\w/g, (c) => c.toUpperCase()) : "ZUNO User";
 }
 
+/** Stable per-account id so per-user data (like KYC status) never collides between accounts. */
+function idFromIdentifier(identifier: string): string {
+  const slug = identifier.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return `usr_${slug || Date.now()}`;
+}
+
 function mockUser(overrides: Partial<User> = {}): User {
   const base = buildMockUser(overrides);
   return { ...base, avatarInitial: (base.name.trim().charAt(0) || "?").toUpperCase() };
@@ -117,6 +123,7 @@ export const authService = {
           readMockAccounts()[input.identifier.trim().toLowerCase()] ??
           readMockAccounts()[input.identifier.trim()] ??
           mockUser({
+            id: idFromIdentifier(input.identifier),
             email: input.identifier.includes("@") ? input.identifier : "",
             phone: input.identifier.includes("@") ? "" : input.identifier,
             name: nameFromIdentifier(input.identifier),
@@ -139,7 +146,7 @@ export const authService = {
     }
     if (env.useMockApi) {
       const session: AuthSession = {
-        user: mockUser({ name: input.name, email: input.email, phone: input.phone, role: input.role }),
+        user: mockUser({ id: idFromIdentifier(input.email || input.phone), name: input.name, email: input.email, phone: input.phone, role: input.role }),
         token: `mock-token-${Date.now()}`,
       };
       saveMockAccount(session.user);

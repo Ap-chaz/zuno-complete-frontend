@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { User, IdCard, Phone, Mail, Globe, Calendar, Upload, Camera, ImageIcon, CheckCircle2, ShieldCheck, Lock, Clock, Loader2 } from "lucide-react";
 import { TopBar } from "@/components/zuno/TopBar";
 import { PhoneFrame } from "@/components/zuno/PhoneFrame";
+import { useAuth } from "@/hooks/useAuth";
+import { getRole } from "@/lib/zuno-role";
 import { consumeKycIntent, loadKycDraft, saveKycDraft, setKycStatus } from "@/lib/zuno-kyc";
 
 type KycSearch = { redirect?: string };
@@ -23,6 +25,7 @@ type KycForm = {
 function KycScreen() {
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
+  const { user } = useAuth();
   const [form, setForm] = useState<KycForm>({
     fullName: "",
     idNumber: "",
@@ -41,6 +44,16 @@ function KycScreen() {
     const draft = loadKycDraft<KycForm>();
     if (draft) setForm((f) => ({ ...f, ...draft }));
   }, []);
+  // Pre-fill what we already know from signup so the person doesn't retype it.
+  useEffect(() => {
+    if (!user) return;
+    setForm((f) => ({
+      ...f,
+      fullName: f.fullName || user.name || "",
+      email: f.email || user.email || "",
+      phone: f.phone || user.phone || "",
+    }));
+  }, [user]);
   useEffect(() => {
     saveKycDraft(form);
   }, [form]);
@@ -69,12 +82,12 @@ function KycScreen() {
       sessionStorage.setItem("zuno_kyc", JSON.stringify(form));
     } catch {}
     setKycStatus("verified");
-    const target = redirect || consumeKycIntent() || "/app";
+    const target = redirect || consumeKycIntent() || (getRole() === "seller" ? "/seller" : "/app");
     setTimeout(() => {
       if (typeof window !== "undefined" && target.startsWith("/")) {
         window.location.assign(target);
       } else {
-        navigate({ to: "/app" });
+        navigate({ to: getRole() === "seller" ? "/seller" : "/app" });
       }
     }, 600);
   };

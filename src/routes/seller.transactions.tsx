@@ -2,12 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight, Download, ArrowDownRight } from "lucide-react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
+import { KycGate } from "@/components/zuno/KycGate";
 import { currency } from "@/lib/zuno-data";
 import { exportToCsv } from "@/lib/csv-export";
 
 export const Route = createFileRoute("/seller/transactions")({
   head: () => ({ meta: [{ title: "Payouts — ZUNO Seller" }] }),
-  component: Payouts,
+  component: () => (
+    <KycGate fallback="/seller">
+      <Payouts />
+    </KycGate>
+  ),
 });
 
 const rows = [
