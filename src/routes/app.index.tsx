@@ -16,6 +16,9 @@ export const Route = createFileRoute("/app/")({
   component: Home,
 });
 
+/** Dashboard shows a preview only; the full list lives on /app/track. */
+const MAX_ACTIVE_PREVIEW = 4;
+
 const PROGRESS_BY_STATUS: Record<TxStatus, { pct: string; label: string }> = {
   Pending: { pct: "25%", label: "Awaiting funding" },
   Funded: { pct: "50%", label: "Funds secured" },
@@ -121,11 +124,23 @@ function Home() {
               <EmptyState icon={Package} title="No active orders" description="Start a new escrow deal to see it here." />
             </div>
           ) : (
-            <div className="mt-3 grid grid-cols-2 gap-3 lg:gap-4">
-              {activeOrders!.map((order) => (
-                <ActiveOrderCard key={order.id} order={order} />
-              ))}
-            </div>
+            <>
+              <ul className="mt-3 divide-y divide-border/40 overflow-hidden rounded-3xl border border-border/40 bg-surface">
+                {activeOrders!.slice(0, MAX_ACTIVE_PREVIEW).map((order) => (
+                  <li key={order.id}>
+                    <ActiveOrderRow order={order} />
+                  </li>
+                ))}
+              </ul>
+              {activeOrders!.length > MAX_ACTIVE_PREVIEW && (
+                <Link
+                  to="/app/track"
+                  className="mt-3 block rounded-2xl border border-border/40 bg-surface py-3 text-center text-sm font-semibold text-gold transition-colors hover:bg-surface-2"
+                >
+                  View all {activeOrders!.length} active orders
+                </Link>
+              )}
+            </>
           )}
         </section>
 
@@ -166,27 +181,35 @@ function Home() {
   );
 }
 
-function ActiveOrderCard({ order }: { order: Transaction }) {
+function ActiveOrderRow({ order }: { order: Transaction }) {
   const progress = PROGRESS_BY_STATUS[order.status];
   return (
     <Link
       to="/app/transaction/$id"
       params={{ id: order.id }}
-      className="min-w-0 rounded-2xl border border-border/40 bg-surface p-4 transition-transform active:scale-[0.98] lg:transition-colors lg:hover:bg-surface-2 lg:active:scale-100"
+      className="block px-4 py-3.5 transition-colors hover:bg-surface-2 active:bg-surface-2"
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
-          <Package className="h-4 w-4" />
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gold/15 text-gold">
+          <Package className="h-5 w-5" />
         </span>
-        <span className={`truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusColorClass(order.status)}`}>{order.status}</span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{order.item}</p>
+          <p className="truncate text-xs text-muted-foreground">{order.seller}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-bold">{formatCurrency(order.amount)}</p>
+          <span className={`mt-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusColorClass(order.status)}`}>
+            {order.status}
+          </span>
+        </div>
       </div>
-      <p className="mt-3 truncate text-lg font-bold">{formatCurrency(order.amount)}</p>
-      <p className="truncate text-[11px] text-muted-foreground">{order.item}</p>
-      <p className="truncate text-[11px] text-muted-foreground">{order.seller}</p>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
-        <div className="h-full rounded-full bg-gold" style={{ width: progress.pct }} />
+      <div className="mt-3 flex items-center gap-2 pl-14">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
+          <div className="h-full rounded-full bg-gold" style={{ width: progress.pct }} />
+        </div>
+        <span className="w-24 shrink-0 truncate text-right text-[10px] text-muted-foreground">{progress.label}</span>
       </div>
-      <p className="mt-1.5 truncate text-[10px] text-muted-foreground">{progress.label}</p>
     </Link>
   );
 }
