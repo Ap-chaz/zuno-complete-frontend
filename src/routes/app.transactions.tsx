@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal, Inbox } from "lucide-react";
+import { Search, SlidersHorizontal, Inbox, Smartphone } from "lucide-react";
 import { TopBar } from "@/components/zuno/TopBar";
 import {
   DropdownMenu,
@@ -16,7 +16,15 @@ import { useTransactions } from "@/hooks/queries/useTransactions";
 import { formatCurrency, statusColorClass } from "@/services/transactions.service";
 import type { TxStatus } from "@/types/models";
 
-const filters: ("All" | TxStatus)[] = ["All", "Completed", "Funded", "Pending", "Protected", "Refunded", "Disputed"];
+const filters: ("All" | TxStatus)[] = [
+  "All",
+  "Completed",
+  "Funded",
+  "Pending",
+  "Protected",
+  "Refunded",
+  "Disputed",
+];
 
 type SortKey = "newest" | "oldest" | "amount-desc" | "amount-asc";
 const SORT_LABELS: Record<SortKey, string> = {
@@ -43,7 +51,10 @@ function Activity() {
     const q = query.trim().toLowerCase();
     if (q) {
       result = result.filter(
-        (t) => t.item.toLowerCase().includes(q) || t.seller.toLowerCase().includes(q) || t.id.toLowerCase().includes(q),
+        (t) =>
+          t.item.toLowerCase().includes(q) ||
+          t.seller.toLowerCase().includes(q) ||
+          t.id.toLowerCase().includes(q),
       );
     }
     const sorted = [...result];
@@ -106,13 +117,15 @@ function Activity() {
         </label>
       </div>
 
-      <div className="mt-3 flex gap-2 overflow-x-auto px-5 pb-1 hide-scrollbar">
+      <div className="mt-4 flex shrink-0 gap-2 overflow-x-auto px-5 pb-1 hide-scrollbar min-h-[38px]">
         {filters.map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors ${
-              filter === f ? "border-gold bg-gold text-gold-foreground" : "border-border bg-surface text-muted-foreground"
+              filter === f
+                ? "border-gold bg-gold text-gold-foreground"
+                : "border-border bg-surface text-muted-foreground"
             }`}
           >
             {f}
@@ -122,12 +135,18 @@ function Activity() {
 
       <div className="mt-4 px-5 pb-6">
         {isLoading && <ListSkeleton rows={5} />}
-        {isError && <ErrorState description="Couldn't load your transactions." onRetry={() => refetch()} />}
+        {isError && (
+          <ErrorState description="Couldn't load your transactions." onRetry={() => refetch()} />
+        )}
         {!isLoading && !isError && list.length === 0 && (
           <EmptyState
             icon={Inbox}
             title="No matching transactions"
-            description={query || filter !== "All" ? "Try a different search or filter." : "Your escrow payments will appear here."}
+            description={
+              query || filter !== "All"
+                ? "Try a different search or filter."
+                : "Your escrow payments will appear here."
+            }
           />
         )}
         {!isLoading && !isError && list.length > 0 && (
@@ -139,7 +158,9 @@ function Activity() {
                   params={{ id: t.id }}
                   className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border border-border/40 bg-surface p-3.5 transition-colors hover:border-gold/30"
                 >
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-surface-2 text-lg">📱</span>
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-surface-2 text-muted-foreground">
+                    <Smartphone className="h-5 w-5" />
+                  </span>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">{t.item}</p>
                     <p className="truncate text-xs text-muted-foreground">
@@ -148,7 +169,9 @@ function Activity() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold">{formatCurrency(t.amount)}</p>
-                    <span className={`mt-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusColorClass(t.status)}`}>
+                    <span
+                      className={`mt-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusColorClass(t.status)}`}
+                    >
                       {t.status}
                     </span>
                   </div>
