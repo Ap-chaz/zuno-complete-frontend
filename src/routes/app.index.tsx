@@ -121,7 +121,7 @@ function Home() {
               <EmptyState icon={Package} title="No active orders" description="Start a new escrow deal to see it here." />
             </div>
           ) : (
-            <div className="mt-3 flex gap-3 overflow-x-auto pb-2 hide-scrollbar sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:pb-0">
+            <div className="mt-3 grid grid-cols-2 gap-3 lg:gap-4">
               {activeOrders!.map((order) => (
                 <ActiveOrderCard key={order.id} order={order} />
               ))}
@@ -172,29 +172,21 @@ function ActiveOrderCard({ order }: { order: Transaction }) {
     <Link
       to="/app/transaction/$id"
       params={{ id: order.id }}
-      className="min-w-[260px] flex-1 rounded-3xl border border-border/40 bg-surface p-4 shadow-card transition-transform active:scale-[0.98] sm:min-w-0 sm:transition-shadow sm:hover:shadow-md sm:active:scale-100"
+      className="min-w-0 rounded-2xl border border-border/40 bg-surface p-4 transition-transform active:scale-[0.98] lg:transition-colors lg:hover:bg-surface-2 lg:active:scale-100"
     >
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-surface-2 text-lg">
-            <Package className="h-5 w-5 text-gold" />
-          </span>
-          <div>
-            <p className="text-sm font-semibold">{order.item}</p>
-            <p className="text-xs text-muted-foreground">{order.seller}</p>
-          </div>
-        </div>
-        <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusColorClass(order.status)}`}>{order.status}</span>
+      <div className="flex items-center justify-between gap-2">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
+          <Package className="h-4 w-4" />
+        </span>
+        <span className={`truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusColorClass(order.status)}`}>{order.status}</span>
       </div>
-      <div className="mt-4">
-        <p className="text-lg font-bold">{formatCurrency(order.amount)}</p>
-        <div className="mt-3 flex items-center gap-2">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
-            <div className="h-full rounded-full bg-gold" style={{ width: progress.pct }} />
-          </div>
-          <span className="text-[10px] text-muted-foreground">{progress.label}</span>
-        </div>
+      <p className="mt-3 truncate text-lg font-bold">{formatCurrency(order.amount)}</p>
+      <p className="truncate text-[11px] text-muted-foreground">{order.item}</p>
+      <p className="truncate text-[11px] text-muted-foreground">{order.seller}</p>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
+        <div className="h-full rounded-full bg-gold" style={{ width: progress.pct }} />
       </div>
+      <p className="mt-1.5 truncate text-[10px] text-muted-foreground">{progress.label}</p>
     </Link>
   );
 }
