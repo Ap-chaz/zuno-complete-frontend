@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { MessageCircle, AlertTriangle, Mail, ChevronDown, Search, SearchX } from "lucide-react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
@@ -19,7 +19,13 @@ const faqs = [
   { q: "Is my money safe?", a: "Funds are held in licensed partner banks under regulated custody with full audit trails." },
 ];
 
-export function Help({ backTo, reportTo }: { backTo: string; reportTo: string }) {
+/**
+ * `embedded` = rendered inside the seller/buyer AppShell, which already
+ * provides the height-bounded frame, sidebar and bottom nav. In that case we
+ * must NOT wrap in <PhoneFrame> (its 100dvh min-height overflows the shell,
+ * so the page can't scroll properly and the last card hides behind the bottom nav).
+ */
+export function Help({ backTo, reportTo, embedded = false }: { backTo: string; reportTo: string; embedded?: boolean }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState<number | null>(0);
   const [query, setQuery] = useState("");
@@ -32,10 +38,12 @@ export function Help({ backTo, reportTo }: { backTo: string; reportTo: string })
 
   const startChat = () => toast.info("Live chat is coming soon — email us in the meantime.");
 
+  const Frame = embedded ? EmbeddedFrame : PhoneFrame;
+
   return (
-    <PhoneFrame>
+    <Frame>
       <TopBar title="Help & Support" back={backTo} />
-      <div className="flex-1 overflow-y-auto px-5 pt-4 pb-8">
+      <div className={`min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-8 ${embedded ? "lg:px-0" : ""}`}>
         <label className="flex h-12 items-center gap-3 rounded-2xl border border-border/60 bg-input px-4 focus-within:border-gold/50">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
@@ -58,7 +66,7 @@ export function Help({ backTo, reportTo }: { backTo: string; reportTo: string })
             <EmptyState icon={SearchX} title="No matching articles" description="Try a different search term, or start a chat below." />
           </div>
         ) : (
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-3 space-y-2 lg:grid lg:grid-cols-2 lg:items-start lg:gap-3 lg:space-y-0">
             {filtered.map((f) => {
               const i = faqs.indexOf(f);
               return (
@@ -85,8 +93,12 @@ export function Help({ backTo, reportTo }: { backTo: string; reportTo: string })
           </button>
         </div>
       </div>
-    </PhoneFrame>
+    </Frame>
   );
+}
+
+function EmbeddedFrame({ children }: { children: ReactNode }) {
+  return <div className="flex min-h-0 flex-1 flex-col">{children}</div>;
 }
 
 function Quick({ icon: Icon, label, gold, onClick }: { icon: typeof MessageCircle; label: string; gold?: boolean; onClick?: () => void }) {
