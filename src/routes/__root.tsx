@@ -26,7 +26,7 @@ import zunoLogo from "@/assets/zuno-logo-new.png";
 const APP_PREFIXES = ["/app", "/auth", "/seller", "/admin"];
 // Standalone app-native screens (own TopBar/PhoneFrame) that live outside
 // those prefixes but still shouldn't get the marketing chrome.
-const APP_ROUTES = ["/share", "/help"];
+const APP_ROUTES = ["/help"];
 function isAppRoute(pathname: string) {
   if (APP_ROUTES.includes(pathname)) return true;
   return APP_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

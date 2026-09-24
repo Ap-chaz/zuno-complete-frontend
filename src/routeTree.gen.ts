@@ -24,7 +24,6 @@ import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as ReturnsPolicyRouteImport } from './routes/returns-policy'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as SellerRouteImport } from './routes/seller'
-import { Route as ShareRouteImport } from './routes/share'
 import { Route as ShippingPolicyRouteImport } from './routes/shipping-policy'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -148,11 +147,6 @@ const SecurityRoute = SecurityRouteImport.update({
 const SellerRoute = SellerRouteImport.update({
   id: '/seller',
   path: '/seller',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShareRoute = ShareRouteImport.update({
-  id: '/share',
-  path: '/share',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShippingPolicyRoute = ShippingPolicyRouteImport.update({
@@ -417,7 +411,6 @@ export interface FileRoutesByFullPath {
   '/returns-policy': typeof ReturnsPolicyRoute
   '/security': typeof SecurityRoute
   '/seller': typeof SellerRouteWithChildren
-  '/share': typeof ShareRoute
   '/shipping-policy': typeof ShippingPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -482,7 +475,6 @@ export interface FileRoutesByTo {
   '/refund-policy': typeof RefundPolicyRoute
   '/returns-policy': typeof ReturnsPolicyRoute
   '/security': typeof SecurityRoute
-  '/share': typeof ShareRoute
   '/shipping-policy': typeof ShippingPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -550,7 +542,6 @@ export interface FileRoutesById {
   '/returns-policy': typeof ReturnsPolicyRoute
   '/security': typeof SecurityRoute
   '/seller': typeof SellerRouteWithChildren
-  '/share': typeof ShareRoute
   '/shipping-policy': typeof ShippingPolicyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
@@ -619,7 +610,6 @@ export interface FileRouteTypes {
     | '/returns-policy'
     | '/security'
     | '/seller'
-    | '/share'
     | '/shipping-policy'
     | '/sitemap.xml'
     | '/terms'
@@ -684,7 +674,6 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/returns-policy'
     | '/security'
-    | '/share'
     | '/shipping-policy'
     | '/sitemap.xml'
     | '/terms'
@@ -751,7 +740,6 @@ export interface FileRouteTypes {
     | '/returns-policy'
     | '/security'
     | '/seller'
-    | '/share'
     | '/shipping-policy'
     | '/sitemap.xml'
     | '/terms'
@@ -819,7 +807,6 @@ export interface RootRouteChildren {
   ReturnsPolicyRoute: typeof ReturnsPolicyRoute
   SecurityRoute: typeof SecurityRoute
   SellerRoute: typeof SellerRouteWithChildren
-  ShareRoute: typeof ShareRoute
   ShippingPolicyRoute: typeof ShippingPolicyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
@@ -947,13 +934,6 @@ declare module '@tanstack/react-router' {
       path: '/seller'
       fullPath: '/seller'
       preLoaderRoute: typeof SellerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/share': {
-      id: '/share'
-      path: '/share'
-      fullPath: '/share'
-      preLoaderRoute: typeof ShareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shipping-policy': {
@@ -1393,7 +1373,6 @@ const rootRouteChildren: RootRouteChildren = {
   ReturnsPolicyRoute: ReturnsPolicyRoute,
   SecurityRoute: SecurityRoute,
   SellerRoute: SellerRouteWithChildren,
-  ShareRoute: ShareRoute,
   ShippingPolicyRoute: ShippingPolicyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,

@@ -9,7 +9,6 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   { id: "n3", title: "Funds locked safely", body: "ZUNO escrow holding KES 145,000", read: true, createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), type: "transaction" },
   { id: "n4", title: "Identity verified", body: "Trust score increased to 850", read: true, createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), type: "kyc" },
   { id: "n5", title: "New login from Nairobi", body: "Tap if this wasn't you", read: true, createdAt: new Date(Date.now() - 86400000 * 4).toISOString(), type: "system" },
-  { id: "n6", title: "Referral reward earned", body: "+KES 250 wallet bonus", read: true, createdAt: new Date(Date.now() - 86400000 * 4).toISOString(), type: "system" },
 ];
 
 export const notificationsService = {

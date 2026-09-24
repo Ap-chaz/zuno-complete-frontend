@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { getAvatarInitial } from "@/lib/user-display";
-import { ShieldCheck, ChevronRight, User, Bell, Lock, CreditCard, HelpCircle, Share2, LogOut, BadgeCheck } from "lucide-react";
+import { ShieldCheck, ChevronRight, User, Bell, Lock, CreditCard, HelpCircle, LogOut, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
 import { useAuth } from "@/hooks/useAuth";
@@ -78,7 +78,6 @@ function Account() {
 
       <Section title="ZUNO">
         <Row icon={ShieldCheck} label="SafePay protection" to="/app/safepay" />
-        <Row icon={Share2} label="Invite & earn" to="/share" />
         <Row icon={HelpCircle} label="Help & support" to="/help" />
       </Section>
 
