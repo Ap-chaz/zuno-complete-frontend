@@ -17,6 +17,8 @@ import {
 import { toast } from "sonner";
 import { Logo } from "@/components/zuno/Logo";
 import { ThemeToggle } from "@/components/zuno/ThemeToggle";
+import { useAuth } from "@/hooks/useAuth";
+import { getAvatarInitial, getFirstName } from "@/lib/user-display";
 import { currency } from "@/lib/zuno-data";
 import { getSellerVerificationTier } from "@/lib/seller-business-verification";
 import type { SellerVerificationTier } from "@/types/models";
@@ -47,6 +49,9 @@ function SellerHome() {
 }
 
 function SellerHeader({ subtitle }: { subtitle: string }) {
+  const { user } = useAuth();
+  const firstName = getFirstName(user);
+  const isBusiness = getSellerVerificationTier() === "verified";
   return (
     <>
       <header className="flex items-center justify-between px-5 pt-6 lg:px-0 lg:pt-0">
@@ -55,7 +60,7 @@ function SellerHeader({ subtitle }: { subtitle: string }) {
           <span className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-bold text-gold">SELLER</span>
         </div>
         <div className="hidden lg:block">
-          <h1 className="text-2xl font-bold tracking-tight">{timeOfDayGreeting()}, Alvan 👋</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{timeOfDayGreeting()}, {firstName} 👋</h1>
           <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -64,12 +69,12 @@ function SellerHeader({ subtitle }: { subtitle: string }) {
             <Bell className="h-5 w-5 text-gold" />
           </Link>
           <Link to="/seller/account" className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-gold text-sm font-bold text-gold-foreground">
-            Z
+            {isBusiness ? "Z" : getAvatarInitial(user)}
           </Link>
         </div>
       </header>
       <p className="mt-5 px-5 text-sm text-muted-foreground lg:hidden">
-        {timeOfDayGreeting()}, Alvan 👋
+        {timeOfDayGreeting()}, {firstName} 👋
       </p>
     </>
   );

@@ -61,7 +61,37 @@ function clearBiometricSession() {
   window.localStorage.removeItem(BIOMETRIC_USER_KEY);
 }
 
+const MOCK_ACCOUNTS_KEY = "zuno_mock_accounts";
+
+function readMockAccounts(): Record<string, User> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(MOCK_ACCOUNTS_KEY) ?? "{}") as Record<string, User>;
+  } catch {
+    return {};
+  }
+}
+
+function saveMockAccount(user: User) {
+  if (typeof window === "undefined") return;
+  const accounts = readMockAccounts();
+  if (user.email) accounts[user.email.trim().toLowerCase()] = user;
+  if (user.phone) accounts[user.phone.trim()] = user;
+  window.localStorage.setItem(MOCK_ACCOUNTS_KEY, JSON.stringify(accounts));
+}
+
+function nameFromIdentifier(identifier: string): string {
+  const local = identifier.includes("@") ? identifier.split("@")[0] : identifier;
+  const words = local.replace(/[._-]+/g, " ").trim();
+  return words ? words.replace(/\b\w/g, (c) => c.toUpperCase()) : "ZUNO User";
+}
+
 function mockUser(overrides: Partial<User> = {}): User {
+  const base = buildMockUser(overrides);
+  return { ...base, avatarInitial: (base.name.trim().charAt(0) || "?").toUpperCase() };
+}
+
+function buildMockUser(overrides: Partial<User> = {}): User {
   return {
     id: "usr_demo_001",
     name: "Alvan Otieno",
@@ -70,7 +100,7 @@ function mockUser(overrides: Partial<User> = {}): User {
     role: "buyer",
     kycStatus: "unverified",
     trustScore: 850,
-    avatarInitial: "A",
+    avatarInitial: "A", // overridden below from the real name
     createdAt: new Date().toISOString(),
     ...overrides,
   };
@@ -83,7 +113,14 @@ export const authService = {
     }
     if (env.useMockApi) {
       const session: AuthSession = {
-        user: mockUser({ email: input.identifier, name: "Alvan Otieno" }),
+        user:
+          readMockAccounts()[input.identifier.trim().toLowerCase()] ??
+          readMockAccounts()[input.identifier.trim()] ??
+          mockUser({
+            email: input.identifier.includes("@") ? input.identifier : "",
+            phone: input.identifier.includes("@") ? "" : input.identifier,
+            name: nameFromIdentifier(input.identifier),
+          }),
         token: `mock-token-${Date.now()}`,
       };
       persistSession(session);
@@ -105,6 +142,7 @@ export const authService = {
         user: mockUser({ name: input.name, email: input.email, phone: input.phone, role: input.role }),
         token: `mock-token-${Date.now()}`,
       };
+      saveMockAccount(session.user);
       persistSession(session);
       return mockResolve(session);
     }

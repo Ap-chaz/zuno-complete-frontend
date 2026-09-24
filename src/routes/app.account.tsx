@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { getAvatarInitial } from "@/lib/user-display";
 import { ShieldCheck, ChevronRight, User, Bell, Lock, CreditCard, HelpCircle, Share2, LogOut, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
@@ -31,7 +32,7 @@ function Account() {
       <div className="mx-5 mt-4 rounded-3xl border border-border/40 bg-gradient-card p-5 shadow-card">
         <div className="flex items-center gap-4">
           <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-gold text-2xl font-bold text-gold-foreground">
-            {user?.avatarInitial ?? "?"}
+            {getAvatarInitial(user)}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">

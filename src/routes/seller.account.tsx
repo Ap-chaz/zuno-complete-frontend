@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { getAvatarInitial } from "@/lib/user-display";
 import {
   ShieldCheck,
   ChevronRight,
@@ -51,11 +52,11 @@ function SellerAccount() {
       <div className="mx-5 mt-4 rounded-3xl border border-border/40 bg-gradient-card p-5 shadow-card">
         <div className="flex items-center gap-4">
           <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-gold text-2xl font-bold text-gold-foreground">
-            {isBusiness ? "Z" : (user?.avatarInitial ?? user?.name?.charAt(0) ?? "A")}
+            {isBusiness ? "Z" : getAvatarInitial(user)}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <p className="truncate text-lg font-semibold">{isBusiness ? "Zuri Boutique KE" : (user?.name ?? "Alvan Mwangi")}</p>
+              <p className="truncate text-lg font-semibold">{isBusiness ? "Zuri Boutique KE" : (user?.name ?? "Seller")}</p>
               {isBusiness && <BadgeCheck className="h-4 w-4 text-gold" />}
             </div>
             <p className="truncate text-xs text-muted-foreground">{isBusiness ? "hello@zuriboutique.co.ke" : (user?.email ?? "—")}</p>

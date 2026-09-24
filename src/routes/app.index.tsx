@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { getAvatarInitial, getFirstName } from "@/lib/user-display";
 import { Bell, Shield, PlayCircle, ArrowUpRight, ShieldCheck, Package, FilePlus, Inbox } from "lucide-react";
 import { Logo } from "@/components/zuno/Logo";
 import { ThemeToggle } from "@/components/zuno/ThemeToggle";
@@ -39,7 +40,7 @@ function Home() {
   const { data: unreadCount } = useUnreadNotificationCount();
   const recent = (transactions ?? []).slice(0, 3);
   const protectedTotal = (activeOrders ?? []).reduce((sum, t) => sum + t.amount, 0);
-  const firstName = user?.name?.split(" ")[0] ?? "there";
+  const firstName = getFirstName(user);
 
   return (
     <div className="flex-1 overflow-y-auto pb-6">
@@ -73,7 +74,7 @@ function Home() {
             className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-gold text-sm font-bold text-gold-foreground"
             aria-label="Account"
           >
-            {user?.avatarInitial ?? firstName.charAt(0).toUpperCase()}
+            {getAvatarInitial(user)}
           </Link>
         </div>
       </header>
