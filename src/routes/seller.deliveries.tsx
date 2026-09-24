@@ -1,11 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Phone, Truck, CheckCircle2, Package, MapPin, Clock, Download, Share2 } from "lucide-react";
+import {
+  Phone,
+  Truck,
+  CheckCircle2,
+  Package,
+  MapPin,
+  Clock,
+  Receipt as ReceiptIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
+import { ReceiptSheet } from "@/components/zuno/ReceiptSheet";
 import { EmptyState } from "@/components/common/StateViews";
 import { currency } from "@/lib/zuno-data";
-import { downloadReceipt, shareReceipt, type ReceiptData } from "@/lib/receipt";
+import type { ReceiptData } from "@/lib/receipt";
 import {
   Dialog,
   DialogContent,
@@ -124,8 +133,8 @@ function Deliveries() {
             {orders[tab].map((o) => (
               <li key={o.id} className="rounded-3xl border border-border/40 bg-surface p-4">
                 <div className="flex items-start gap-3">
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-2 text-xl">
-                    📦
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-2 text-muted-foreground">
+                    <Package className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{o.item}</p>
@@ -163,7 +172,7 @@ function Deliveries() {
                   )}
                   {tab === "Completed" && (
                     <Action
-                      icon={Package}
+                      icon={ReceiptIcon}
                       label="Receipt"
                       gold
                       onClick={() => setReceiptOrder(o)}
@@ -215,14 +224,14 @@ function Deliveries() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={receiptOrder !== null} onOpenChange={(open) => !open && setReceiptOrder(null)}>
-        <DialogContent>{receiptOrder && <ReceiptView order={receiptOrder} />}</DialogContent>
-      </Dialog>
+      {receiptOrder && (
+        <ReceiptSheet data={buildReceiptData(receiptOrder)} onClose={() => setReceiptOrder(null)} />
+      )}
     </div>
   );
 }
 
-function ReceiptView({ order }: { order: Order }) {
+function buildReceiptData(order: Order): ReceiptData {
   // Flat 1.75% (medium-tier) escrow fee, split evenly, matching the rate
   // shown on the public pricing page — real per-listing fee tiers aren't
   // tracked in this mock data yet.
@@ -235,9 +244,8 @@ function ReceiptView({ order }: { order: Order }) {
     month: "long",
     year: "numeric",
   });
-  const [isBusy, setIsBusy] = useState<"download" | "share" | null>(null);
 
-  const buildData = (): ReceiptData => ({
+  return {
     id: order.id,
     kind: "payout",
     dateLabel: dateStr,
@@ -250,72 +258,7 @@ function ReceiptView({ order }: { order: Order }) {
     ],
     totalLabel: "Paid out to you",
     totalValue: currency(payout),
-  });
-
-  const handleDownload = async () => {
-    if (isBusy) return;
-    setIsBusy("download");
-    await downloadReceipt(buildData());
-    setIsBusy(null);
   };
-
-  const handleShare = async () => {
-    if (isBusy) return;
-    setIsBusy("share");
-    await shareReceipt(buildData());
-    setIsBusy(null);
-  };
-
-  return (
-    <>
-      <DialogHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <DialogTitle>Receipt</DialogTitle>
-            <DialogDescription className="font-mono text-xs">#{order.id}</DialogDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleShare}
-              disabled={isBusy !== null}
-              aria-label="Share receipt"
-              className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-surface-2 text-foreground transition-colors hover:bg-surface disabled:opacity-50"
-            >
-              <Share2 className="h-4 w-4" />
-            </button>
-            <button
-              onClick={handleDownload}
-              disabled={isBusy !== null}
-              aria-label="Download receipt"
-              className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-surface-2 text-foreground transition-colors hover:bg-surface disabled:opacity-50"
-            >
-              <Download className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </DialogHeader>
-      <div className="space-y-3">
-        <div className="rounded-2xl border border-border/40 bg-surface-2 p-4">
-          <p className="text-xs text-muted-foreground">Paid out to you</p>
-          <p className="mt-1 text-2xl font-bold">{currency(order.amount - sellerFee)}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {order.item} · {dateStr}
-          </p>
-        </div>
-        <Detail icon={Package} label="Escrow amount" value={currency(order.amount)} />
-        <Detail icon={Package} label="ZUNO fee (your share)" value={`-${currency(sellerFee)}`} />
-        <Detail icon={Package} label="Buyer" value={order.buyer} />
-        <button
-          onClick={handleDownload}
-          disabled={isBusy !== null}
-          className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold disabled:opacity-60"
-        >
-          <Download className="h-4 w-4" />{" "}
-          {isBusy === "download" ? "Preparing receipt…" : "Download receipt (PDF)"}
-        </button>
-      </div>
-    </>
-  );
 }
 
 function Detail({

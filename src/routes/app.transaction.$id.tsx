@@ -1,15 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Download, Share2, Shield, Copy, Check, Smartphone } from "lucide-react";
+import { Receipt as ReceiptIcon, Shield, Copy, Check, Smartphone } from "lucide-react";
 import { VerificationBadge } from "@/components/zuno/VerificationBadge";
 import { useState } from "react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
+import { ReceiptSheet } from "@/components/zuno/ReceiptSheet";
 import { ErrorState, CardSkeleton } from "@/components/common/StateViews";
 import { useTransaction } from "@/hooks/queries/useTransactions";
 import { useSeller } from "@/hooks/queries/useSellers";
 import { useAuth } from "@/hooks/useAuth";
 import { formatCurrency, statusColorClass } from "@/services/transactions.service";
-import { downloadReceipt, shareReceipt, type ReceiptData } from "@/lib/receipt";
+import type { ReceiptData } from "@/lib/receipt";
 
 export const Route = createFileRoute("/app/transaction/$id")({
   head: ({ params }) => ({ meta: [{ title: `Receipt ${params.id} — ZUNO` }] }),
@@ -46,7 +47,7 @@ function TxDetail() {
   const { data: seller } = useSeller(tx?.sellerId);
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
-  const [isBusy, setIsBusy] = useState<"download" | "share" | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
 
   const handleCopyId = async () => {
     if (!tx) return;
@@ -58,20 +59,6 @@ function TxDetail() {
     } catch {
       toast.error("Couldn't copy — select and copy manually.");
     }
-  };
-
-  const handleDownloadReceipt = async () => {
-    if (!tx || isBusy) return;
-    setIsBusy("download");
-    await downloadReceipt(buildReceiptData(tx, user?.name));
-    setIsBusy(null);
-  };
-
-  const handleShareReceipt = async () => {
-    if (!tx || isBusy) return;
-    setIsBusy("share");
-    await shareReceipt(buildReceiptData(tx, user?.name));
-    setIsBusy(null);
   };
 
   if (isLoading) {
@@ -110,30 +97,7 @@ function TxDetail() {
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto">
-      <TopBar
-        title="Receipt"
-        back="/app/transactions"
-        right={
-          <>
-            <button
-              onClick={handleShareReceipt}
-              disabled={isBusy !== null}
-              aria-label="Share receipt"
-              className="grid h-10 w-10 place-items-center rounded-xl bg-surface text-foreground transition-colors hover:bg-surface-2 disabled:opacity-50"
-            >
-              <Share2 className="h-4 w-4" />
-            </button>
-            <button
-              onClick={handleDownloadReceipt}
-              disabled={isBusy !== null}
-              aria-label="Download receipt"
-              className="grid h-10 w-10 place-items-center rounded-xl bg-surface text-foreground transition-colors hover:bg-surface-2 disabled:opacity-50"
-            >
-              <Download className="h-4 w-4" />
-            </button>
-          </>
-        }
-      />
+      <TopBar title="Receipt" back="/app/transactions" />
 
       <div className="px-5 pt-4">
         <div className="overflow-hidden rounded-3xl border border-border/40 bg-gradient-card p-6 shadow-card">
@@ -221,14 +185,19 @@ function TxDetail() {
         )}
 
         <button
-          onClick={handleDownloadReceipt}
-          disabled={isBusy !== null}
-          className="my-6 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold transition-opacity hover:opacity-95 disabled:opacity-60"
+          onClick={() => setShowReceipt(true)}
+          className="my-6 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold transition-opacity hover:opacity-95"
         >
-          <Download className="h-4 w-4" />{" "}
-          {isBusy === "download" ? "Preparing receipt…" : "Download receipt (PDF)"}
+          <ReceiptIcon className="h-4 w-4" /> Receipt
         </button>
       </div>
+
+      {showReceipt && (
+        <ReceiptSheet
+          data={buildReceiptData(tx, user?.name)}
+          onClose={() => setShowReceipt(false)}
+        />
+      )}
     </div>
   );
 }
