@@ -85,6 +85,15 @@ export function NewEscrow({
     // charged and no delivery will be created, so never write a real
     // transaction to Activity/Home.
     if (demo) return;
+    // Defense-in-depth: KycGate already blocks unverified users from reaching
+    // this screen, but this mutating handler re-asserts it directly (see
+    // assertKycVerified's docstring) so a UI bypass still fails loudly
+    // instead of silently persisting a transaction.
+    try {
+      assertKycVerified();
+    } catch {
+      return;
+    }
     transactionsService
       .create({
         item: form.product || "New item",

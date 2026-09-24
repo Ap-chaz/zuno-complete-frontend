@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { UserPlus, LogIn, ShieldCheck, Info } from "lucide-react";
 import { TopBar } from "@/components/zuno/TopBar";
-import { PhoneFrame } from "@/components/zuno/PhoneFrame";
 
 export const Route = createFileRoute("/seller/protected-deal")({
   head: () => ({ meta: [{ title: "Start a Protected Deal — ZUNO" }] }),
@@ -11,7 +10,7 @@ export const Route = createFileRoute("/seller/protected-deal")({
 function SellerProtectedDealGate() {
   const REDIRECT = "/app/new-escrow";
   return (
-    <PhoneFrame>
+    <div className="flex flex-1 flex-col overflow-y-auto">
       <TopBar title="Start a Protected Deal" back="/seller/safepay" />
       <div className="flex flex-1 flex-col px-5 pt-4 pb-8">
         <div className="rounded-3xl border border-border/40 bg-gradient-card p-6 shadow-card">
@@ -60,6 +59,6 @@ function SellerProtectedDealGate() {
           After sign in or registration, you'll return to the Protected Deal creation flow automatically.
         </p>
       </div>
-    </PhoneFrame>
+    </div>
   );
 }
