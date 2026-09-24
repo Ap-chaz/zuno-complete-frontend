@@ -23,6 +23,21 @@ const initials = (name: string) =>
     .join("")
     .toUpperCase();
 
+const pillars = [
+  {
+    label: "Mission",
+    text: "To make online commerce safer for everyone by creating a trusted space where people can buy, sell and transact with confidence.",
+  },
+  {
+    label: "Vision",
+    text: "To become Africa's most trusted name in digital trade, where transaction — big or small — happens without fear.",
+  },
+  {
+    label: "Team",
+    text: "A founder, two engineers, and a marketer — small enough to move fast, accountable enough to trust.",
+  },
+];
+
 const team: TeamMember[] = [
   {
     name: "Alvan Peter Nyakundi",
@@ -100,24 +115,14 @@ function About() {
 
       <section className="py-16 lg:py-24">
         <div className="mx-auto grid max-w-[1200px] gap-6 px-6 md:grid-cols-3 lg:px-8">
-          <Reveal>
-            <div className="rounded-[20px] border border-border bg-surface p-6 shadow-card">
-              <p className="eyebrow">Mission</p>
-              <p className="mt-3 font-semibold">Make online trade between strangers as safe as buying from your neighbour.</p>
-            </div>
-          </Reveal>
-          <Reveal delay={60}>
-            <div className="rounded-[20px] border border-border bg-surface p-6 shadow-card">
-              <p className="eyebrow">Where we operate</p>
-              <p className="mt-3 font-semibold">Online, wherever buyers and sellers need a neutral third party.</p>
-            </div>
-          </Reveal>
-          <Reveal delay={120}>
-            <div className="rounded-[20px] border border-border bg-surface p-6 shadow-card">
-              <p className="eyebrow">Team</p>
-              <p className="mt-3 font-semibold">A founder, two engineers, and a marketer — small enough to move fast, accountable enough to trust.</p>
-            </div>
-          </Reveal>
+          {pillars.map((p, i) => (
+            <Reveal key={p.label} delay={i * 60}>
+              <div className="h-full rounded-[20px] border border-border bg-surface p-6 shadow-card lg:p-8">
+                <p className="eyebrow">{p.label}</p>
+                <p className="mt-4 text-lg font-semibold leading-snug lg:text-xl">{p.text}</p>
+              </div>
+            </Reveal>
+          ))}
         </div>
       </section>
 
