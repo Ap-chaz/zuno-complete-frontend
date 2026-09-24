@@ -17,6 +17,8 @@ export const Route = createFileRoute("/auth/kyc")({
   component: KycScreen,
 });
 
+const TOTAL_ITEMS = 8; // 6 detail fields + front and back of ID
+
 type DocState = { name: string; progress: number; done: boolean } | null;
 type KycForm = {
   fullName: string; idNumber: string; phone: string; email: string; country: string; dob: string;
@@ -75,6 +77,17 @@ function KycScreen() {
     return Object.keys(e).length === 0;
   };
 
+  const completed = [
+    form.fullName.trim(),
+    form.idNumber.trim(),
+    /^\+?[0-9\s-]{7,}$/.test(form.phone),
+    /^\S+@\S+\.\S+$/.test(form.email),
+    form.country,
+    form.dob,
+    front?.done,
+    back?.done,
+  ].filter(Boolean).length;
+
   const handleContinue = () => {
     if (!validate()) return;
     setSubmitting(true);
@@ -96,16 +109,17 @@ function KycScreen() {
     <PhoneFrame>
       <TopBar title="Verify Your Identity" back="/" />
       <div className="flex flex-1 flex-col px-5 pt-3 pb-8">
-        {/* Progress */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1">
-            <div className="flex items-center justify-between text-[10px] font-bold tracking-[0.18em] text-muted-foreground">
-              <span>STEP 1 OF 3</span>
-              <span className="text-gold">KYC</span>
-            </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
-              <div className="h-full w-1/3 rounded-full bg-gradient-gold" />
-            </div>
+        {/* Progress — reflects how much of this single form is filled in */}
+        <div>
+          <div className="flex items-center justify-between text-[10px] font-bold tracking-[0.18em] text-muted-foreground">
+            <span>{completed} OF {TOTAL_ITEMS} COMPLETED</span>
+            <span className="text-gold">KYC</span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface">
+            <div
+              className="h-full rounded-full bg-gradient-gold transition-all duration-300"
+              style={{ width: `${(completed / TOTAL_ITEMS) * 100}%` }}
+            />
           </div>
         </div>
 
