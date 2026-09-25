@@ -1,22 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Phone,
   Truck,
-  CheckCircle2,
   Package,
-  MapPin,
   Clock,
   Receipt as ReceiptIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TopBar } from "@/components/zuno/TopBar";
 import { ReceiptSheet } from "@/components/zuno/ReceiptSheet";
-import { EmptyState } from "@/components/common/StateViews";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/common/StateViews";
 import { currency } from "@/lib/zuno-data";
 import { KycRequiredDialog } from "@/components/zuno/KycRequiredDialog";
 import { isKycVerified } from "@/lib/zuno-kyc";
+import { useTransactions, useUpdateTransactionStatus } from "@/hooks/queries/useTransactions";
 import type { ReceiptData } from "@/lib/receipt";
+import type { Transaction } from "@/types/models";
 import {
   Dialog,
   DialogContent,
@@ -32,84 +32,51 @@ export const Route = createFileRoute("/seller/deliveries")({
 
 const tabs = ["Waiting", "Active", "Completed"] as const;
 type Tab = (typeof tabs)[number];
-type Order = {
-  item: string;
-  buyer: string;
-  id: string;
-  amount: number;
-  address: string;
-  placedAt: string;
-};
 
-const INITIAL_ORDERS: Record<Tab, Order[]> = {
-  Waiting: [
-    {
-      item: "iPhone 17 Pro Max",
-      buyer: "Alvan Mwangi",
-      id: "ZUNOAXFVLO4Y8Y",
-      amount: 191311,
-      address: "Kilimani, Nairobi",
-      placedAt: "2026-09-11T09:20:00.000Z",
-    },
-    {
-      item: "AirPods Pro 3",
-      buyer: "Brenda Kerubo",
-      id: "ZUNO22HJ8K9L0M",
-      amount: 32500,
-      address: "Westlands, Nairobi",
-      placedAt: "2026-09-12T14:05:00.000Z",
-    },
-  ],
-  Active: [
-    {
-      item: "MacBook Air M4",
-      buyer: "James Otieno",
-      id: "ZUNO9KLP2M3N4Q",
-      amount: 168000,
-      address: "Ruaka, Kiambu",
-      placedAt: "2026-09-08T11:40:00.000Z",
-    },
-  ],
-  Completed: [
-    {
-      item: "Sony WH-1000XM6",
-      buyer: "Mary Wanjiru",
-      id: "ZUNO7HG6FD5SA1",
-      amount: 45900,
-      address: "Karen, Nairobi",
-      placedAt: "2026-08-30T16:15:00.000Z",
-    },
-    {
-      item: "Apple Watch Ultra",
-      buyer: "Peter Kim",
-      id: "ZUNO5UI6OP7AS8",
-      amount: 89000,
-      address: "Lavington, Nairobi",
-      placedAt: "2026-08-27T10:00:00.000Z",
-    },
-  ],
+// Waiting = paid into escrow but not yet marked shipped (status "Funded").
+// Active = marked shipped / in transit (status "Protected" — the same
+// status app.tracking.$id.tsx labels "In transit" on the buyer side).
+// Completed = delivery confirmed, escrow released (status "Completed").
+// NOTE: same convention as the rest of the Seller module — there's no
+// real per-seller account table yet, so this shows every mock transaction
+// in the relevant status rather than inventing a seller-id filter.
+const STATUS_FOR_TAB: Record<Tab, Transaction["status"]> = {
+  Waiting: "Funded",
+  Active: "Protected",
+  Completed: "Completed",
 };
 
 function Deliveries() {
-  const [tab, setTab] = useState<Tab>("Waiting");
-  const [orders, setOrders] = useState<Record<Tab, Order[]>>(INITIAL_ORDERS);
-  const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
-  const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
+  const { data: transactions, isLoading, isError, refetch } = useTransactions();
+  const updateStatus = useUpdateTransactionStatus();
 
+  const [tab, setTab] = useState<Tab>("Waiting");
+  const [detailsOrder, setDetailsOrder] = useState<Transaction | null>(null);
+  const [receiptOrder, setReceiptOrder] = useState<Transaction | null>(null);
   const [kycOpen, setKycOpen] = useState(false);
 
-  const moveOrder = (order: Order, from: Tab, to: Tab, message: string) => {
+  const byTab = useMemo(() => {
+    const buckets: Record<Tab, Transaction[]> = { Waiting: [], Active: [], Completed: [] };
+    for (const t of transactions ?? []) {
+      const tabForStatus = (Object.keys(STATUS_FOR_TAB) as Tab[]).find((k) => STATUS_FOR_TAB[k] === t.status);
+      if (tabForStatus) buckets[tabForStatus].push(t);
+    }
+    return buckets;
+  }, [transactions]);
+
+  const moveOrder = (order: Transaction, toStatus: Transaction["status"], message: string) => {
     // Shipping and delivery confirmations release money — identity must be verified first.
     if (!isKycVerified()) {
       setKycOpen(true);
       return;
     }
-    setOrders((prev) => ({
-      ...prev,
-      [from]: prev[from].filter((o) => o.id !== order.id),
-      [to]: [order, ...prev[to]],
-    }));
-    toast.success(message);
+    updateStatus.mutate(
+      { id: order.id, status: toStatus },
+      {
+        onSuccess: () => toast.success(message),
+        onError: () => toast.error("Couldn't update this order. Please try again."),
+      },
+    );
   };
 
   return (
@@ -125,13 +92,17 @@ function Deliveries() {
               tab === t ? "bg-gradient-gold text-gold-foreground" : "text-muted-foreground"
             }`}
           >
-            {t} <span className="opacity-60">({orders[t].length})</span>
+            {t} <span className="opacity-60">({byTab[t].length})</span>
           </button>
         ))}
       </div>
 
       <div className="mt-4 px-5 pb-8">
-        {orders[tab].length === 0 ? (
+        {isError ? (
+          <ErrorState description="Couldn't load your orders." onRetry={() => refetch()} />
+        ) : isLoading ? (
+          <ListSkeleton rows={3} />
+        ) : byTab[tab].length === 0 ? (
           <EmptyState
             icon={Package}
             title={`No ${tab.toLowerCase()} orders`}
@@ -139,7 +110,7 @@ function Deliveries() {
           />
         ) : (
           <ul className="space-y-3">
-            {orders[tab].map((o) => (
+            {byTab[tab].map((o) => (
               <li key={o.id} className="rounded-3xl border border-border/40 bg-surface p-4">
                 <div className="flex items-start gap-3">
                   <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-2 text-muted-foreground">
@@ -147,7 +118,7 @@ function Deliveries() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold">{o.item}</p>
-                    <p className="truncate text-xs text-muted-foreground">Buyer: {o.buyer}</p>
+                    <p className="truncate text-xs text-muted-foreground">Buyer: {o.buyerName ?? "Unknown buyer"}</p>
                     <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">
                       #{o.id}
                     </p>
@@ -164,20 +135,14 @@ function Deliveries() {
                       icon={Truck}
                       label="Mark shipped"
                       gold
-                      onClick={() =>
-                        moveOrder(o, "Waiting", "Active", `${o.item} marked as shipped.`)
-                      }
+                      disabled={updateStatus.isPending}
+                      onClick={() => moveOrder(o, "Protected", `${o.item} marked as shipped.`)}
                     />
                   )}
                   {tab === "Active" && (
-                    <Action
-                      icon={CheckCircle2}
-                      label="Delivered"
-                      gold
-                      onClick={() =>
-                        moveOrder(o, "Active", "Completed", `${o.item} marked as delivered.`)
-                      }
-                    />
+                    <div className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-dashed border-border/60 text-xs font-medium text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" /> Awaiting buyer
+                    </div>
                   )}
                   {tab === "Completed" && (
                     <Action
@@ -214,18 +179,8 @@ function Deliveries() {
                     do.
                   </p>
                 </div>
-                <Detail icon={Package} label="Buyer" value={detailsOrder.buyer} />
-                <Detail icon={MapPin} label="Delivery address" value={detailsOrder.address} />
-                <Detail
-                  icon={Clock}
-                  label="Order placed"
-                  value={new Date(detailsOrder.placedAt).toLocaleString("en-GB", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                />
+                <Detail icon={Package} label="Buyer" value={detailsOrder.buyerName ?? "Unknown buyer"} />
+                <Detail icon={Clock} label="Order placed" value={detailsOrder.date} />
                 <Detail icon={Truck} label="Status" value={tab} />
               </div>
             </>
@@ -247,7 +202,7 @@ function Deliveries() {
   );
 }
 
-function buildReceiptData(order: Order): ReceiptData {
+function buildReceiptData(order: Transaction): ReceiptData {
   // Flat 1.75% (medium-tier) escrow fee, split evenly, matching the rate
   // shown on the public pricing page — real per-listing fee tiers aren't
   // tracked in this mock data yet.
@@ -255,19 +210,14 @@ function buildReceiptData(order: Order): ReceiptData {
   const totalFee = Math.round(order.amount * feePct);
   const sellerFee = Math.round(totalFee / 2);
   const payout = order.amount - sellerFee;
-  const dateStr = new Date(order.placedAt).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 
   return {
     id: order.id,
     kind: "payout",
-    dateLabel: dateStr,
+    dateLabel: order.date,
     rows: [
-      { label: "Date", value: dateStr },
-      { label: "Buyer", value: order.buyer },
+      { label: "Date", value: order.date },
+      { label: "Buyer", value: order.buyerName ?? "Unknown buyer" },
       { label: "Item", value: order.item },
       { label: "Escrow amount", value: currency(order.amount) },
       { label: "ZUNO fee (your share)", value: `-${currency(sellerFee)}` },
@@ -303,17 +253,20 @@ function Action({
   icon: Icon,
   label,
   gold,
+  disabled,
   onClick,
 }: {
   icon: typeof Phone;
   label: string;
   gold?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`flex h-10 items-center justify-center gap-1.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90 ${
+      disabled={disabled}
+      className={`flex h-10 items-center justify-center gap-1.5 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 ${
         gold
           ? "bg-gradient-gold text-gold-foreground"
           : "border border-border bg-surface-2 text-foreground"

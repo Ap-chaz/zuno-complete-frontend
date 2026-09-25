@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import {
   Bell,
   TrendingUp,
   Package,
   Wallet,
-  Star,
   ArrowUpRight,
   ArrowDownRight,
   BadgeCheck,
@@ -22,7 +22,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { getAvatarInitial, getFirstName } from "@/lib/user-display";
 import { currency } from "@/lib/zuno-data";
 import { getSellerVerificationTier } from "@/lib/seller-business-verification";
-import type { SellerVerificationTier } from "@/types/models";
+import { useTransactions } from "@/hooks/queries/useTransactions";
+import { ErrorState } from "@/components/common/StateViews";
+import type { SellerVerificationTier, Transaction } from "@/types/models";
 
 export const Route = createFileRoute("/seller/")({
   head: () => ({ meta: [{ title: "Seller Dashboard — ZUNO" }] }),
@@ -34,6 +36,62 @@ function timeOfDayGreeting() {
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
+}
+
+// Seed dates are "DD/MM/YYYY" — convert to something Date() parses correctly.
+function parseDate(d: string): Date {
+  const [day, month, year] = d.split("/");
+  return new Date(`${year}-${month}-${day}`);
+}
+
+/**
+ * Aggregate real transaction data into the numbers this dashboard needs.
+ * NOTE: same convention as the rest of the app — there's no real per-seller
+ * account table yet (see auth.service.ts), so — matching the Buyer
+ * dashboard and Admin screens — every mock transaction is treated as
+ * belonging to the current session rather than inventing a seller-id
+ * filter with nothing real to filter against.
+ */
+function useSellerStats() {
+  const { data: transactions, isLoading, isError, refetch } = useTransactions();
+
+  const stats = useMemo(() => {
+    const list = transactions ?? [];
+    const completed = list.filter((t) => t.status === "Completed");
+    const inEscrow = list.filter((t) => t.status === "Funded" || t.status === "Protected");
+    const disputed = list.filter((t) => t.status === "Disputed");
+
+    const earned = completed.reduce((sum, t) => sum + t.amount, 0);
+    const pendingPayout = completed.filter((t) => t.payoutStatus !== "paid").reduce((sum, t) => sum + t.amount, 0);
+    const inEscrowTotal = inEscrow.reduce((sum, t) => sum + t.amount, 0);
+
+    const recent = [...list].sort((a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime()).slice(0, 3);
+
+    // Sales by weekday across all known transactions (not "last 7 days" —
+    // the seed dates don't track the real calendar, so a genuine rolling
+    // 7-day window would just show zeros; this is the closest real
+    // breakdown the mock data actually supports).
+    const byWeekday = [0, 0, 0, 0, 0, 0, 0]; // Mon..Sun
+    for (const t of list) {
+      const day = (parseDate(t.date).getDay() + 6) % 7; // convert Sun=0 -> Mon=0
+      byWeekday[day] += t.amount;
+    }
+    const maxDay = Math.max(1, ...byWeekday);
+
+    return {
+      earned,
+      pendingPayout,
+      inEscrowTotal,
+      activeCount: inEscrow.length,
+      completedCount: completed.length,
+      disputedCount: disputed.length,
+      recent,
+      byWeekday,
+      maxDay,
+    };
+  }, [transactions]);
+
+  return { ...stats, isLoading, isError, refetch };
 }
 
 /**
@@ -83,8 +141,29 @@ function SellerHeader({ subtitle }: { subtitle: string }) {
   );
 }
 
+function RecentActivityRow({ t }: { t: Transaction }) {
+  const up = t.status !== "Refunded";
+  return (
+    <li className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border border-border/40 bg-surface p-3.5 transition-colors hover:bg-surface-2">
+      <span className={`grid h-10 w-10 place-items-center rounded-2xl ${up ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}>
+        {up ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold">{t.item}</p>
+        <p className="truncate text-xs text-muted-foreground">{t.buyerName ?? "Unknown buyer"}</p>
+      </div>
+      <div className="text-right">
+        <p className={`text-sm font-bold ${up ? "" : "text-destructive"}`}>{currency(t.amount)}</p>
+        <p className="text-[10px] text-muted-foreground">{t.status}</p>
+      </div>
+    </li>
+  );
+}
+
 /** Casual/occasional seller: simple totals + a clear upgrade path. No shop, no analytics — just their own deals. */
 function BasicSellerDashboard({ tier }: { tier: SellerVerificationTier }) {
+  const { earned, activeCount, completedCount, disputedCount, recent, isLoading, isError, refetch } = useSellerStats();
+
   return (
     <div className="flex-1 overflow-y-auto pb-6">
       <SellerHeader subtitle="Here's a quick look at your ZUNO sales." />
@@ -93,41 +172,38 @@ function BasicSellerDashboard({ tier }: { tier: SellerVerificationTier }) {
         <VerificationStatusCard tier={tier} />
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 px-5 lg:mt-6 lg:grid-cols-4 lg:gap-4 lg:px-0">
-        <Stat icon={Wallet} label="Total earned" value={currency(86400)} delta="all time" />
-        <Stat icon={Package} label="Active orders" value="2" delta="in escrow" />
-        <Stat icon={TrendingUp} label="Completed" value="9" delta="all time" />
-        <Stat icon={Star} label="Avg. rating" value="4.7" delta="12 reviews" />
-      </div>
-
-      <section className="mt-7 px-5 lg:mt-8 lg:px-0">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold lg:text-lg">Recent activity</h2>
-          <Link to="/seller/transactions" className="flex items-center gap-1 text-xs font-medium text-gold lg:text-sm">
-            See all <ArrowUpRight className="h-3 w-3" />
-          </Link>
+      {isError ? (
+        <div className="mt-6 px-5 lg:px-0">
+          <ErrorState description="Couldn't load your sales data." onRetry={() => refetch()} />
         </div>
-        <ul className="mt-3 space-y-2 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
-          {[
-            { item: "iPhone 13, 128GB", buyer: "Wanjiru K.", amount: 52000, status: "Funded", up: true },
-            { item: "PS5 controller (used)", buyer: "Denis O.", amount: 6400, status: "Completed", up: true },
-          ].map((r, i) => (
-            <li key={i} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border border-border/40 bg-surface p-3.5 transition-colors hover:bg-surface-2">
-              <span className={`grid h-10 w-10 place-items-center rounded-2xl ${r.up ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}>
-                {r.up ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">{r.item}</p>
-                <p className="truncate text-xs text-muted-foreground">{r.buyer}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-bold">{currency(r.amount)}</p>
-                <p className="text-[10px] text-muted-foreground">{r.status}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
+      ) : (
+        <>
+          <div className="mt-6 grid grid-cols-2 gap-3 px-5 lg:mt-6 lg:grid-cols-4 lg:gap-4 lg:px-0">
+            <Stat icon={Wallet} label="Total earned" value={isLoading ? "…" : currency(earned)} delta="all time" />
+            <Stat icon={Package} label="Active orders" value={isLoading ? "…" : String(activeCount)} delta="in escrow" />
+            <Stat icon={TrendingUp} label="Completed" value={isLoading ? "…" : String(completedCount)} delta="all time" />
+            <Stat icon={ShieldAlert} label="Disputed" value={isLoading ? "…" : String(disputedCount)} delta="all time" />
+          </div>
+
+          <section className="mt-7 px-5 lg:mt-8 lg:px-0">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold lg:text-lg">Recent activity</h2>
+              <Link to="/seller/transactions" className="flex items-center gap-1 text-xs font-medium text-gold lg:text-sm">
+                See all <ArrowUpRight className="h-3 w-3" />
+              </Link>
+            </div>
+            {!isLoading && recent.length === 0 ? (
+              <p className="mt-3 rounded-2xl border border-dashed border-border/60 bg-surface/40 px-4 py-6 text-center text-sm text-muted-foreground">
+                No sales yet.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-2 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0">
+                {recent.slice(0, 2).map((t) => <RecentActivityRow key={t.id} t={t} />)}
+              </ul>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }
@@ -210,91 +286,89 @@ function BenefitRow({ icon: Icon, label }: { icon: typeof LineChart; label: stri
 
 /** Verified business seller: full analytics dashboard. Unlocked once an admin approves business verification. */
 function BusinessDashboard() {
+  const {
+    earned, pendingPayout, inEscrowTotal, activeCount, completedCount, disputedCount,
+    recent, byWeekday, maxDay, isLoading, isError, refetch,
+  } = useSellerStats();
+
   return (
     <div className="flex-1 overflow-y-auto pb-6">
       <SellerHeader subtitle="Here's how your store is performing." />
 
-      <div className="mx-5 mt-5 overflow-hidden rounded-3xl border border-border/40 bg-gradient-card p-6 shadow-card lg:mx-0 lg:mt-6 lg:p-8">
-        <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground">TOTAL EARNINGS · JUNE</p>
-        <p className="mt-2 text-4xl font-bold lg:text-5xl">{currency(1284500)}</p>
-        <div className="mt-2 flex items-center gap-1 text-xs font-semibold text-success">
-          <ArrowUpRight className="h-3.5 w-3.5" /> +18.4% vs last month
+      {isError ? (
+        <div className="mx-5 mt-5 lg:mx-0 lg:mt-6">
+          <ErrorState description="Couldn't load your store data." onRetry={() => refetch()} />
         </div>
+      ) : (
+        <>
+          <div className="mx-5 mt-5 overflow-hidden rounded-3xl border border-border/40 bg-gradient-card p-6 shadow-card lg:mx-0 lg:mt-6 lg:p-8">
+            <p className="text-xs font-semibold tracking-[0.18em] text-muted-foreground">TOTAL EARNINGS</p>
+            <p className="mt-2 text-4xl font-bold lg:text-5xl">{isLoading ? "…" : currency(earned)}</p>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border/40 pt-4 lg:max-w-sm lg:gap-6 lg:pt-6">
-          <div>
-            <p className="text-[10px] tracking-wider text-muted-foreground">PENDING PAYOUT</p>
-            <p className="mt-0.5 text-base font-bold text-gold lg:text-lg">{currency(286400)}</p>
-          </div>
-          <div>
-            <p className="text-[10px] tracking-wider text-muted-foreground">IN ESCROW</p>
-            <p className="mt-0.5 text-base font-bold lg:text-lg">{currency(420800)}</p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => toast.info("Payouts to M-PESA are coming soon — your balance stays safely on ZUNO until then.")}
-          className="mt-4 flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold transition-opacity hover:opacity-95 lg:w-auto lg:px-8"
-        >
-          Withdraw to M-PESA
-        </button>
-      </div>
-
-      <div className="mt-6 grid grid-cols-2 gap-3 px-5 lg:mt-6 lg:grid-cols-4 lg:gap-4 lg:px-0">
-        <Stat icon={TrendingUp} label="Today's sales" value={currency(48200)} delta="+12%" up />
-        <Stat icon={Package} label="Active orders" value="14" delta="3 new" up />
-        <Stat icon={Wallet} label="Completed" value="328" delta="this month" />
-        <Stat icon={Star} label="Avg. rating" value="4.9" delta="612 reviews" />
-      </div>
-
-      <div className="mt-7 px-5 lg:mt-8 lg:grid lg:grid-cols-3 lg:gap-8 lg:px-0">
-        <section className="lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold lg:text-lg">Sales overview</h2>
-            <span className="text-xs text-muted-foreground lg:text-sm">Last 7 days</span>
-          </div>
-          <div className="mt-3 rounded-3xl border border-border/40 bg-surface p-5 lg:p-6">
-            <div className="flex h-32 items-end gap-2 lg:h-48">
-              {[40, 65, 30, 80, 55, 92, 70].map((h, i) => (
-                <div key={i} className="flex-1">
-                  <div className="rounded-t-lg bg-gradient-gold" style={{ height: `${h}%` }} />
-                </div>
-              ))}
+            <div className="mt-5 grid grid-cols-2 gap-3 border-t border-border/40 pt-4 lg:max-w-sm lg:gap-6 lg:pt-6">
+              <div>
+                <p className="text-[10px] tracking-wider text-muted-foreground">PENDING PAYOUT</p>
+                <p className="mt-0.5 text-base font-bold text-gold lg:text-lg">{isLoading ? "…" : currency(pendingPayout)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] tracking-wider text-muted-foreground">IN ESCROW</p>
+                <p className="mt-0.5 text-base font-bold lg:text-lg">{isLoading ? "…" : currency(inEscrowTotal)}</p>
+              </div>
             </div>
-            <div className="mt-2 grid grid-cols-7 gap-2 text-center text-[10px] text-muted-foreground lg:text-xs">
-              {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => <span key={i}>{d}</span>)}
-            </div>
-          </div>
-        </section>
 
-        <section className="mt-7 lg:col-span-1 lg:mt-0">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold lg:text-lg">Recent activity</h2>
-            <Link to="/seller/transactions" className="flex items-center gap-1 text-xs font-medium text-gold lg:text-sm">See all <ArrowUpRight className="h-3 w-3" /></Link>
+            <button
+              onClick={() => toast.info("Payouts to M-PESA are coming soon — your balance stays safely on ZUNO until then.")}
+              className="mt-4 flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-gold text-sm font-semibold text-gold-foreground shadow-gold transition-opacity hover:opacity-95 lg:w-auto lg:px-8"
+            >
+              Withdraw to M-PESA
+            </button>
           </div>
-          <ul className="mt-3 space-y-2">
-            {[
-              { item: "iPhone 17 Pro Max", buyer: "Alvan M.", amount: 191311, status: "Funded", up: true },
-              { item: "MacBook Air M4", buyer: "Brenda K.", amount: 145000, status: "Released", up: true },
-              { item: "Refund issued", buyer: "James O.", amount: -42000, status: "Refunded", up: false },
-            ].map((r, i) => (
-              <li key={i} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border border-border/40 bg-surface p-3.5 transition-colors hover:bg-surface-2">
-                <span className={`grid h-10 w-10 place-items-center rounded-2xl ${r.up ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}>
-                  {r.up ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{r.item}</p>
-                  <p className="truncate text-xs text-muted-foreground">{r.buyer}</p>
+
+          <div className="mt-6 grid grid-cols-2 gap-3 px-5 lg:mt-6 lg:grid-cols-4 lg:gap-4 lg:px-0">
+            <Stat icon={Package} label="Active orders" value={isLoading ? "…" : String(activeCount)} delta="in escrow" />
+            <Stat icon={TrendingUp} label="Completed" value={isLoading ? "…" : String(completedCount)} delta="all time" />
+            <Stat icon={Wallet} label="Pending payout" value={isLoading ? "…" : currency(pendingPayout)} delta="awaiting transfer" />
+            <Stat icon={ShieldAlert} label="Disputed" value={isLoading ? "…" : String(disputedCount)} delta="all time" />
+          </div>
+
+          <div className="mt-7 px-5 lg:mt-8 lg:grid lg:grid-cols-3 lg:gap-8 lg:px-0">
+            <section className="lg:col-span-2">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold lg:text-lg">Sales overview</h2>
+                <span className="text-xs text-muted-foreground lg:text-sm">By day of week</span>
+              </div>
+              <div className="mt-3 rounded-3xl border border-border/40 bg-surface p-5 lg:p-6">
+                <div className="flex h-32 items-end gap-2 lg:h-48">
+                  {byWeekday.map((amount, i) => (
+                    <div key={i} className="flex-1">
+                      <div className="rounded-t-lg bg-gradient-gold" style={{ height: `${Math.max(4, (amount / maxDay) * 100)}%` }} />
+                    </div>
+                  ))}
                 </div>
-                <div className="text-right">
-                  <p className={`text-sm font-bold ${r.up ? "" : "text-destructive"}`}>{r.up ? "+" : ""}{currency(Math.abs(r.amount))}</p>
-                  <p className="text-[10px] text-muted-foreground">{r.status}</p>
+                <div className="mt-2 grid grid-cols-7 gap-2 text-center text-[10px] text-muted-foreground lg:text-xs">
+                  {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => <span key={i}>{d}</span>)}
                 </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
+              </div>
+            </section>
+
+            <section className="mt-7 lg:col-span-1 lg:mt-0">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold lg:text-lg">Recent activity</h2>
+                <Link to="/seller/transactions" className="flex items-center gap-1 text-xs font-medium text-gold lg:text-sm">See all <ArrowUpRight className="h-3 w-3" /></Link>
+              </div>
+              {!isLoading && recent.length === 0 ? (
+                <p className="mt-3 rounded-2xl border border-dashed border-border/60 bg-surface/40 px-4 py-6 text-center text-sm text-muted-foreground">
+                  No sales yet.
+                </p>
+              ) : (
+                <ul className="mt-3 space-y-2">
+                  {recent.map((t) => <RecentActivityRow key={t.id} t={t} />)}
+                </ul>
+              )}
+            </section>
+          </div>
+        </>
+      )}
     </div>
   );
 }
